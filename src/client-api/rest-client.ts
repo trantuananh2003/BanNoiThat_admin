@@ -244,6 +244,29 @@ class RestClient {
       throw error;
     }
   }
+
+  // Cập nhật dữ liệu
+  async put<T>(objectId: string, data: any): Promise<T> {
+    try {
+      const isFormData = data instanceof FormData;
+      const response = await this.axiosInstance.put<T>(
+        `/${this.path}/${objectId}`,
+        data,
+        {
+          headers: {
+            "Content-Type": isFormData
+              ? "multipart/form-data"
+              : "application/json",
+            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating data", error);
+      throw error;
+    }
+  }
 }
 
 // Khởi tạo clientAPI với baseURL là localhost:7000

@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
 
   return (
     <div className="bg-gray-100 p-4 flex justify-between items-center shadow-md">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <h1 className="text-xl font-semibold">Quản lý danh mục</h1>
       <div className="relative">
         <button
           onClick={toggleDropdown}

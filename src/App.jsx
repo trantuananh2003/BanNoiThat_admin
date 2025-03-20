@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { setUser } from "./redux/features/userSlice";
 import OrderPage from "./pages/Order";
 import UserPage from "./pages/User";
+import AnalysisPage from "./pages/Analysist";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<OrderPage />} />
           <Route path="users" element={<UserPage />} />
+          <Route path="analysis" element={<AnalysisPage />} />
         </Route>
       </Routes>
     </Router>

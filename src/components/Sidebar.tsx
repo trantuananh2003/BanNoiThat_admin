@@ -7,6 +7,8 @@ import {
   FaUser,
 } from "react-icons/fa";
 
+import { LineChartOutlined } from '@ant-design/icons';
+
 const Sidebar = () => {
   const navItem =
     "flex items-center p-3 my-1 rounded transition-colors hover:bg-purple-800";
@@ -60,6 +62,14 @@ const Sidebar = () => {
         }
       >
         <UserIcon className="mr-3 text-lg" /> Users
+      </NavLink>
+      <NavLink
+        to="/admin/analysis"
+        className={({ isActive }) =>
+          `${navItem} ${isActive ? "bg-purple-800" : ""}`
+        }
+      >
+        <LineChartOutlined />Analysis
       </NavLink>
     </div>
   );

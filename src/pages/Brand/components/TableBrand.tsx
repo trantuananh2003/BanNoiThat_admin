@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import clientAPI from '../../../client-api/rest-client';
-import { Table, Input, Button, Checkbox, Image } from 'antd';
+import { Table, Input, Button } from 'antd';
 import { DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 
 interface Brand {
-    id: number;
-    brandName: string;
+    id: string;
+    name: string;
+    slug: string;
 }
 
 const TableBrand: React.FC = () => {
     const [data, setData] = useState<Brand[]>([]);
-    const [editId, setEditId] = useState<number | null>(null);
+    const [editId, setEditId] = useState<string | null>(null);
     const [editBrandName, setEditBrandName] = useState<string>('');
+    const [editSlug, setEditSlug] = useState<string>('');
     const [newBrandName, setNewBrandName] = useState<string>('');
+    const [newSlug, setNewSlug] = useState<string>('');
 
     useEffect(() => {
         const fetchBrands = async () => {
@@ -25,30 +28,30 @@ const TableBrand: React.FC = () => {
         };
 
         fetchBrands();
-    }, []);
+    }, [editId]);
 
-    const handleEdit = (id: any, brandName: string) => {
-        setEditId(id);
+    const handleEdit = (id: string, brandName: string, slug: string) => {
+        setEditId(id.toString());
         setEditBrandName(brandName);
+        setEditSlug(slug);
     };
 
-    const handleSave = (id: any) => {
-        if (editBrandName.trim() !== '') {
-            setData((prevData) =>
-                prevData.map((item) =>
-                    item.id === id ? { ...item, brandName: editBrandName } : item
-                )
-            );
+    const handleSave = async (id: string) => {
+        if (editBrandName.trim() !== '' && editSlug.trim() !== '' && editId) {
+            const formData = new FormData();
+            formData.append('Name', editBrandName);
+            formData.append('Slug', editSlug);
+            clientAPI.service('Brands').put(editId, formData);
             setEditId(null);
         }
     };
 
-    const handleDelete = async (id: any) => {
+    const handleDelete = async (id: string) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this brand?');
         if (confirmDelete) {
             try {
                 await clientAPI.service('Brands').remove(id.toString());
-                setData((prevData) => prevData.filter((item) => item.id !== id));
+                setData(prevData => prevData.filter(item => item.id !== id));
             } catch (error) {
                 console.error('Error deleting brand:', error);
             }
@@ -56,105 +59,117 @@ const TableBrand: React.FC = () => {
     };
 
     const handleAddNew = async () => {
-        if (newBrandName.trim() !== '') {
+        if (newBrandName.trim() !== '' && newSlug.trim() !== '') {
             try {
                 const formData = new FormData();
-                formData.append("BrandName", newBrandName);
+                formData.append('BrandName', newBrandName);
+                formData.append('Slug', newSlug);
                 const response: Brand = await clientAPI.service('Brands').create(formData);
-                setData((prevData) => [...prevData, response]);
+                setData(prevData => [...prevData, response]);
                 setNewBrandName('');
+                setNewSlug('');
             } catch (error) {
                 console.error('Error adding new brand:', error);
             }
         }
     };
+
     const columns = [
         {
             title: 'ID',
             dataIndex: 'id',
-            key: 'id',
+            key: 'id'
         },
         {
             title: 'Brand Name',
             dataIndex: 'name',
-            key: 'name',
-            render: (text: any, record: any) => (
-            editId === record.id ? (
-                <Input
-                value={editBrandName}
-                onChange={(e) => setEditBrandName(e.target.value)}
-                />
-            ) : (
-                <span>{text}</span>
-            )
-            ),
+            key: 'brandName',
+            render: (text: string, record: Brand) =>
+                editId === record.id.toString() ? (
+                    <Input
+                        value={editBrandName}
+                        onChange={e => setEditBrandName(e.target.value)}
+                    />
+                ) : (
+                    <span>{text}</span>
+                )
+        },
+        {
+            title: 'Slug',
+            dataIndex: 'slug',
+            key: 'slug',
+            render: (text: string, record: Brand) =>
+                editId === record.id.toString() ? (
+                    <Input
+                        value={editSlug}
+                        onChange={e => setEditSlug(e.target.value)}
+                    />
+                ) : (
+                    <span>{text}</span>
+                )
         },
         {
             title: 'Actions',
             key: 'actions',
-            render: (text: any, record: any) => (
-        <div>
-            {editId === record.id ? (
-                <Button
-                    className="mr-2"
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    onClick={() => handleSave(record.id)}
-                >
-                    
-                </Button>
-            ) : (
-                <Button
-                    className="mr-2"
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(record.id, record.brandName)}
-                >
-                </Button>
-            )}
-            <Button
-                type="primary"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(record.id)}
-            >
-            </Button>
-        </div>
-            ),
-        },
+            render: (_: any, record: Brand) => (
+                <div>
+                    {editId === record.id.toString() ? (
+                        <Button
+                            className="mr-2"
+                            type="primary"
+                            icon={<SaveOutlined />}
+                            onClick={() => handleSave(record.id)}
+                        />
+                    ) : (
+                        <Button
+                            className="mr-2"
+                            type="primary"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEdit(record.id, record.name, record.slug)}
+                        />
+                    )}
+                    <Button
+                        type="primary"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDelete(record.id)}
+                    />
+                </div>
+            )
+        }
     ];
+
     return (
         <div className="container mx-auto p-4">
             <Table
                 columns={columns}
                 dataSource={data}
                 rowKey="id"
-                pagination={
-                    {
-                        pageSize:6,
-                        total: data.length,
-                        showSizeChanger: false,
-                    }
-                }
+                pagination={{
+                    pageSize: 6,
+                    total: data.length,
+                    showSizeChanger: false
+                }}
                 footer={() => (
-                    <tr className="border-b">
-                        <td className="py-3 px-4 border">+</td>
-                        <td className="py-3 px-4 border">
-                            <Input
-                                value={newBrandName}
-                                onChange={(e) => setNewBrandName(e.target.value)}
-                                placeholder="New Brand Name"
-                            />
-                        </td>
-                        <td className="py-3 px-4 border">
-                            <Button
-                                type="primary"
-                                onClick={handleAddNew}
-                                icon={<SaveOutlined />}
-                            >
-                            </Button>
-                        </td>
-                    </tr>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Input
+                            style={{ width: '40%' }}
+                            value={newBrandName}
+                            onChange={e => setNewBrandName(e.target.value)}
+                            placeholder="New Brand Name"
+                        />
+                        <Input
+                            style={{ width: '40%' }}
+                            value={newSlug}
+                            onChange={e => setNewSlug(e.target.value)}
+                            placeholder="New Slug"
+                        />
+                        <Button
+                            type="primary"
+                            onClick={handleAddNew}
+                            icon={<SaveOutlined />}
+                        />
+                    </div>
                 )}
             />
         </div>

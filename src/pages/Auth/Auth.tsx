@@ -15,12 +15,12 @@ const Auth: React.FC = () => {
                     >
                         Login
                     </button>
-                    <button
+                    {/* <button
                         className={`px-4 py-2 ${activeTab === 'signup' ? 'border-b-2 border-blue-500' : ''}`}
                         onClick={() => setActiveTab('signup')}
                     >
                         Sign Up
-                    </button>
+                    </button> */}
                 </div>
                 {activeTab === 'login' ? <Login /> : <SignUp />}
             </div>

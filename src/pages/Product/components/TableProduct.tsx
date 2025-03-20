@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Checkbox, Image } from 'antd';
-import { DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, SaveOutlined, ToolOutlined } from '@ant-design/icons';
 import clientAPI from '../../../client-api/rest-client';
 import CreateProduct from './CreateProduct';
 import Modal from 'react-modal';
@@ -10,6 +10,7 @@ const { Search } = Input;
 interface Product {
     id: string;
     name: string;
+    slug: string;
     image: string;
     featured: boolean;
     visible: boolean;
@@ -109,6 +110,16 @@ const TableProduct: React.FC = () => {
             title: 'Slug',
             dataIndex: 'slug',
             key: 'slug',
+            render: (_: any, record: Product) => (
+                editId === record.id ? (
+                    <Input
+                        value={editProduct.slug}
+                        onChange={(e) => setEditProduct({ ...editProduct, slug: e.target.value })}
+                    />
+                ) : (
+                    record.slug
+                )
+            ),
         },
         {
             title: 'Hình ảnh',
@@ -164,11 +175,18 @@ const TableProduct: React.FC = () => {
             render: (_: any, record: Product) => (
                 <div className="flex space-x-2">
                     {editId === record.id ? (
-                        <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSave(record.id)} />
+                        <div className='flex gap-3'>
+                            <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSave(record.id)} />
+                            <Button onClick={() => setEditId(null)}>Cancel</Button>
+                        </div>
+
                     ) : (
-                        <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+                        <div className='flex space-x-2'>
+                            <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+                            <Button type="primary" icon={<ToolOutlined />}> Variations</Button>
+                            <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+                        </div>
                     )}
-                    <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
                 </div>
             ),
         },
