@@ -6,7 +6,7 @@ const Auth: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
 
     return (
-        <div className="flex flex-col justify-center items-center min-h bg-gray-100">
+        <div className="flex flex-col justify-center h-screen items-center min-h bg-gray-100">
             <div className="m-4 p-6 bg-white shadow-md rounded-lg w-full max-w-md">
                 <div className="flex justify-around mb-4">
                     <button

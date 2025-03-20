@@ -173,7 +173,7 @@ const TableProduct: React.FC = () => {
             ),
         },
     ];
-    
+
 
     return (
         <div className="p-4">
@@ -186,7 +186,7 @@ const TableProduct: React.FC = () => {
                     <Button onClick={handleModalCancel} className="ml-2">Cancel</Button>
                 </div>
             </Modal>
-            
+
             <Table
                 dataSource={data}
                 columns={columns}

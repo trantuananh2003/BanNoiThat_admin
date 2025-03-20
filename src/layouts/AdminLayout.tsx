@@ -9,7 +9,7 @@ const AdminLayout = () => {
       <div className="flex-1">
         <Navbar />
         <div className="p-2">
-          <Outlet /> 
+          <Outlet />
         </div>
       </div>
     </div>

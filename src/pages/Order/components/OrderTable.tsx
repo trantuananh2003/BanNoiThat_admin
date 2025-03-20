@@ -34,7 +34,7 @@ const OrderTable: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await clientAPI.service("Orders/Manage").find();
+      const response = await clientAPI.service("Orders/Manager").find(`OrderStatus="pending"`);
       setOrders(response as Order[]);
     } catch (error) {
       console.error("Error fetching orders:", error);
