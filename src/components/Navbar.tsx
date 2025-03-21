@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import User from '../model/User';
+import { setUser, emptyUserState } from '../redux/features/userSlice';
 
 const Navbar: React.FC = () => {
-  const userData: User = useSelector((state: RootState) => state.users);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
+  const userData: User = useSelector(
+    (state: RootState) => state.users
+  );
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
   const onLogout = () => {
-    alert("Logged out!");
+    localStorage.removeItem('userToken');
+    dispatch(setUser(emptyUserState));
+    window.location.reload();
   };
 
   return (

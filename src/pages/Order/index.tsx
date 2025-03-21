@@ -40,9 +40,9 @@ const OrderPage = () => {
     )
   );
 
-  const triggerCancelOrder = async (orderId: string) => {
+  const triggerUpdateStatusOrder = async (orderId: string, orderStatus: string) => {
     let formData = new FormData();
-    formData.append("orderStatus", "Cancelled");
+    formData.append("orderStatus", orderStatus);
 
     const response: ApiResponse = await clientAPI.service("orders").patchEachProperty(orderId, 'orderStatus', formData);
     if (response.isSuccess) {
@@ -130,9 +130,17 @@ const OrderPage = () => {
                   ))}
                   <div><span className="text-lg text-black font-bold">Địa chỉ nhận hàng: </span>{order.shippingAddress}</div>
                 </div>
-                <div className="flex justify-end">
-                  <button className="bg-red-600 rounded-md px-2 py-1 text-white" onClick={() => triggerCancelOrder(order.id)}>Hủy đơn</button>
-                </div>
+                {
+                  order.orderStatus === "Pending" &&
+                  <div className="flex gap-3 justify-end">
+                    <div className="flex justify-end">
+                      <button className="bg-green-600 rounded-md px-2 py-1 text-white" onClick={() => triggerUpdateStatusOrder(order.id, "Processing")}>Xác nhận</button>
+                    </div>
+                    <div className="flex justify-end">
+                      <button className="bg-red-600 rounded-md px-2 py-1 text-white" onClick={() => triggerUpdateStatusOrder(order.id, "Cancelled")}>Hủy đơn</button>
+                    </div>
+                  </div>
+                }
               </div>
             ))
           )}

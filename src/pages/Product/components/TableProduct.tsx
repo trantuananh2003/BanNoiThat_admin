@@ -45,7 +45,7 @@ const TableProduct: React.FC = () => {
     const handleSave = async (key: string) => {
         if (editProduct.name?.trim()) {
             try {
-                await clientAPI.service('Products').patch(key, editProduct);
+                await clientAPI.service('Products').put(key, editProduct);
                 setData((prevData) =>
                     prevData.map((item) =>
                         item.id === key ? { ...item, ...editProduct } : item
@@ -87,11 +87,6 @@ const TableProduct: React.FC = () => {
 
     const columns = [
         {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-        },
-        {
             title: 'Tên sản phẩm',
             dataIndex: 'name',
             key: 'name',
@@ -129,18 +124,18 @@ const TableProduct: React.FC = () => {
                 text ? <Image width={50} src={text} /> : 'No Image Available'
             ),
         },
-        {
-            title: 'Giá gốc',
-            dataIndex: 'price',
-            key: 'price',
-            render: (price: number) => price.toLocaleString() + ' VND',
-        },
-        {
-            title: 'Giá giảm',
-            dataIndex: 'salePrice',
-            key: 'salePrice',
-            render: (salePrice: number) => salePrice.toLocaleString() + ' VND',
-        },
+        // {
+        //     title: 'Giá gốc',
+        //     dataIndex: 'price',
+        //     key: 'price',
+        //     render: (price: number) => price.toLocaleString() + ' VND',
+        // },
+        // {
+        //     title: 'Giá giảm',
+        //     dataIndex: 'salePrice',
+        //     key: 'salePrice',
+        //     render: (salePrice: number) => salePrice.toLocaleString() + ' VND',
+        // },
         {
             title: 'Từ khóa',
             dataIndex: 'keyword',
