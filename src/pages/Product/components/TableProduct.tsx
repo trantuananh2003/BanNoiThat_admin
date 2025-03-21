@@ -1,28 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Checkbox, Image } from 'antd';
+import { Table, Input, Button, Checkbox, Image, Select} from 'antd';
 import { DeleteOutlined, EditOutlined, SaveOutlined, ToolOutlined } from '@ant-design/icons';
 import clientAPI from '../../../client-api/rest-client';
 import CreateProduct from './CreateProduct';
 import Modal from 'react-modal';
+import { StringLiteral } from 'typescript';
 
 const { Search } = Input;
+
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+    children: Category[];
+}
 
 interface Product {
     id: string;
     name: string;
     slug: string;
-    image: string;
+    thumbnailUrl: string;
+    thumbnailFile?: File;
+    keyword: string;
     featured: boolean;
     visible: boolean;
+    categoryId: string;
+    brandId: string;
+    description: string;
+    category?: Category; // Thêm category vào đây
+    brand?:Brand;
 }
 
+
+interface Brand {
+    id: string;
+    name: string;
+    slug: string;
+}
 const TableProduct: React.FC = () => {
     const [data, setData] = useState<Product[]>([]);
     const [editId, setEditId] = useState<string | null>(null);
     const [editProduct, setEditProduct] = useState<Partial<Product>>({});
-    const [newProduct, setNewProduct] = useState<Partial<Product>>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(5);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -33,7 +55,21 @@ const TableProduct: React.FC = () => {
                 console.error('Error fetching products:', error);
             }
         };
-
+        const fetchCategories = async () => {
+            // Fetch categories
+            const response1 = await clientAPI.service('Categories/admin').find();
+            const categories = (response1 as { result: Category[] }).result;
+            const childrenFilter = categories.filter(category => category.children && category.children.length > 0);
+            const childrenCategories = childrenFilter.flatMap(category => category.children);
+            setCategories(childrenCategories);
+        };
+        const fetchBrands = async () => {
+            const response2 = await clientAPI.service('Brands').find();
+            const brands = (response2 as { result: Brand[] }).result;
+            setBrands(brands);
+        }
+        fetchCategories();
+        fetchBrands();
         fetchProducts();
     }, []);
 
@@ -43,18 +79,25 @@ const TableProduct: React.FC = () => {
     };
 
     const handleSave = async (key: string) => {
-        if (editProduct.name?.trim()) {
-            try {
-                await clientAPI.service('Products').put(key, editProduct);
-                setData((prevData) =>
-                    prevData.map((item) =>
-                        item.id === key ? { ...item, ...editProduct } : item
-                    )
-                );
-                setEditId(null);
-            } catch (error) {
-                console.error('Error saving product:', error);
-            }
+        const formData = new FormData();
+        formData.append('Name', editProduct.name ?? '');
+        if (editProduct.thumbnailFile) {
+            formData.append('Image', editProduct.thumbnailFile);
+        }
+        formData.append('Category_Id', editProduct.categoryId ?? '');
+        formData.append('Brand_Id', editProduct.brandId ?? '');
+        formData.append('Description', editProduct.description ?? '');
+        formData.append('Slug', editProduct.slug ?? '');
+
+        try {
+            await clientAPI.service('products').put(key, formData);
+            setData(prevData =>
+                prevData.map(item => (item.id === key ? { ...item, ...editProduct } : item))
+            );
+            setEditId(null);
+            window.location.reload(); // Reload lại toàn bộ trang
+        } catch (error) {
+            console.error('Error saving product:', error);
         }
     };
 
@@ -102,6 +145,85 @@ const TableProduct: React.FC = () => {
             ),
         },
         {
+            title: "Danh mục sản phẩm",
+            dataIndex: 'category',
+            key: 'category',
+            render: (_: any, record: Product) => (
+                editId === record.id ? (
+                    <Select
+                        value={editProduct.categoryId ?? record.category?.id}
+                        onFocus={() => {
+                            // Thiết lập giá trị ban đầu nếu chưa có
+                            if (!editProduct.id) {
+                                setEditProduct({ 
+                                    ...record,  // Giữ nguyên dữ liệu của record
+                                    id: record.id,
+                                    categoryId: record.category?.id
+                                });
+                            }
+                        }}
+                        onChange={(value) => {
+                            if (value !== editProduct.categoryId) {
+                                setEditProduct(prev => ({ 
+                                    ...prev, 
+                                    categoryId: value
+                                }));
+                            }
+                        }}
+                        style={{ width: '100%' }}
+                    >
+                        {categories.map((cat) => (
+                            <Select.Option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                ) : (
+                    record.category?.name || 'Không có danh mục'
+                )
+            ),
+        },
+        {
+            title: "Thương hiệu",
+            dataIndex: 'brand',
+            key: 'brand',
+            render: (_: any, record: Product) => (
+                editId === record.id ? (
+                    <Select
+                        value={editProduct.brandId ?? record.brand?.id}
+                        onFocus={() => {
+                            if (!editProduct.id) {
+                                setEditProduct({ 
+                                    ...record,  // Giữ nguyên dữ liệu của record
+                                    id: record.id,
+                                    brandId: record.brand?.id
+                                });
+                            }
+                        }}
+                        onChange={(value) => {
+                            if (value !== editProduct.brandId) {
+                                setEditProduct(prev => ({ 
+                                    ...prev, 
+                                    brandId: value
+                                }));
+                            }
+                        }}
+                        style={{ width: '100%' }}
+                    >
+                        {brands.map((brand) => (
+                            <Select.Option key={brand.id} value={brand.id}>
+                                {brand.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                ) : (
+                    record.brand?.name || 'Không có thương hiệu'
+                )
+            ),
+        },        
+        
+        
+        {
             title: 'Slug',
             dataIndex: 'slug',
             key: 'slug',
@@ -117,25 +239,62 @@ const TableProduct: React.FC = () => {
             ),
         },
         {
-            title: 'Hình ảnh',
-            dataIndex: 'thumbnailUrl',
-            key: 'thumbnailUrl',
-            render: (text: string) => (
-                text ? <Image width={50} src={text} /> : 'No Image Available'
+            title: "Hình ảnh",
+            dataIndex: "image",
+            key: "image",
+            render: (_: any, record: Product) => (
+                editId === record.id ? (
+                    <div>
+                        {editProduct.thumbnailUrl && (
+                            <img
+                                src={editProduct.thumbnailUrl}
+                                alt="Preview"
+                                style={{ width: 50, height: 50, marginRight: 10, objectFit: "cover" }}
+                            />
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = event => {
+                                        setEditProduct(prev => ({
+                                            ...prev,
+                                            thumbnailFile: file,
+                                            thumbnailUrl: event.target?.result as string,
+                                        }));
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <img
+                        src={record.thumbnailUrl || editProduct.thumbnailUrl || ''}
+                        alt="Product"
+                        style={{ width: 50, height: 50, objectFit: "cover" }}
+                    />
+                )
             ),
         },
-        // {
-        //     title: 'Giá gốc',
-        //     dataIndex: 'price',
-        //     key: 'price',
-        //     render: (price: number) => price.toLocaleString() + ' VND',
-        // },
-        // {
-        //     title: 'Giá giảm',
-        //     dataIndex: 'salePrice',
-        //     key: 'salePrice',
-        //     render: (salePrice: number) => salePrice.toLocaleString() + ' VND',
-        // },
+        {
+            title: 'Mô tả',
+            dataIndex: 'description',
+            key: 'description',
+            render: (_: any, record: Product) => (
+                editId === record.id ? (
+                    <Input
+                        value={editProduct.description}
+                        onChange={(e) => setEditProduct({ ...editProduct, description: e.target.value })}
+                    />
+                ) : (
+                    record.description
+                )
+            ),
+        },
         {
             title: 'Từ khóa',
             dataIndex: 'keyword',
@@ -145,7 +304,7 @@ const TableProduct: React.FC = () => {
             title: 'Tiêu biểu',
             dataIndex: 'featured',
             key: 'featured',
-            render: (featured: boolean, record: Product) => (
+            render: (featured: boolean) => (
                 <Checkbox
                     checked={featured}
                     onChange={(e) => setEditProduct({ ...editProduct, featured: e.target.checked })}
@@ -156,7 +315,7 @@ const TableProduct: React.FC = () => {
             title: 'Hiển thị',
             dataIndex: 'visible',
             key: 'visible',
-            render: (visible: boolean, record: Product) => (
+            render: (visible: boolean) => (
                 <Checkbox
                     checked={visible}
                     onChange={(e) => setEditProduct({ ...editProduct, visible: e.target.checked })}
@@ -174,7 +333,6 @@ const TableProduct: React.FC = () => {
                             <Button type="primary" icon={<SaveOutlined />} onClick={() => handleSave(record.id)} />
                             <Button onClick={() => setEditId(null)}>Cancel</Button>
                         </div>
-
                     ) : (
                         <div className='flex space-x-2'>
                             <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
@@ -186,6 +344,7 @@ const TableProduct: React.FC = () => {
             ),
         },
     ];
+    
 
 
     return (
