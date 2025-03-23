@@ -4,7 +4,7 @@ import { DeleteOutlined, EditOutlined, SaveOutlined, ToolOutlined } from '@ant-d
 import clientAPI from '../../../client-api/rest-client';
 import CreateProduct from './CreateProduct';
 import Modal from 'react-modal';
-import { StringLiteral } from 'typescript';
+import EditProductItem from './EditProductItem';
 
 const { Search } = Input;
 
@@ -40,6 +40,7 @@ interface Brand {
 const TableProduct: React.FC = () => {
     const [data, setData] = useState<Product[]>([]);
     const [editId, setEditId] = useState<string | null>(null);
+    const [editProductItemId, setEditProductItemId] = useState<string | null>(null);
     const [editProduct, setEditProduct] = useState<Partial<Product>>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(5);
@@ -114,6 +115,7 @@ const TableProduct: React.FC = () => {
     };
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
     const handleAddNew = () => {
         setIsModalVisible(true);
@@ -126,6 +128,20 @@ const TableProduct: React.FC = () => {
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
+    };
+
+    const handleEditProductItem = (id: string) => {
+        setEditProductItemId(id);
+        setIsEditModalVisible(true);
+    };
+
+    const handleEditModalOk = () => {
+        // Handle the logic for adding a new product here
+        setIsEditModalVisible(false);
+    };
+
+    const handleEditModalCancel = () => {
+        setIsEditModalVisible(false);
     };
 
     const columns = [
@@ -336,7 +352,7 @@ const TableProduct: React.FC = () => {
                     ) : (
                         <div className='flex space-x-2'>
                             <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-                            <Button type="primary" icon={<ToolOutlined />}> Variations</Button>
+                            <Button type="primary" icon={<ToolOutlined />} onClick={() => handleEditProductItem(record.id)}> Variations</Button>
                             <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
                         </div>
                     )}
@@ -373,6 +389,14 @@ const TableProduct: React.FC = () => {
                     pageSizeOptions: ['5', '10', '15', '20'],
                 }}
             />
+            
+            <Modal isOpen={isEditModalVisible} onRequestClose={handleEditModalCancel}>
+                {editProductItemId && <EditProductItem productId={editProductItemId} />}
+                <div className="flex justify-end mt-4">
+                    <Button type="primary" onClick={handleEditModalOk}>OK</Button>
+                    <Button onClick={handleEditModalCancel} className="ml-2">Cancel</Button>
+                </div>
+            </Modal>
         </div>
     );
 };

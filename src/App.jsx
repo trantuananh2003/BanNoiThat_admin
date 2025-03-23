@@ -9,7 +9,7 @@ import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { setUser } from "./redux/features/userSlice";
 import OrderPage from "./pages/Order";
-import UserPage from "./pages/User";
+import User from "./pages/User/User";
 import AnalysisPage from "./pages/Analysist";
 
 const App = () => {
@@ -32,7 +32,7 @@ const App = () => {
           <Route path="categories" element={<Category />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<OrderPage />} />
-          <Route path="users" element={<UserPage />} />
+          <Route path="users" element={<User />} />
           <Route path="analysis" element={<AnalysisPage />} />
         </Route>
       </Routes>
