@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import 'tailwindcss/tailwind.css';
 
 interface ProductItem {
     quantity: number;
