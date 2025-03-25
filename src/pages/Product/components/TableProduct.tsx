@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Checkbox, Image, Select} from 'antd';
+import { Table, Input, Button, Checkbox, Image, Select } from 'antd';
 import { DeleteOutlined, EditOutlined, SaveOutlined, ToolOutlined } from '@ant-design/icons';
 import clientAPI from '../../../client-api/rest-client';
 import CreateProduct from './CreateProduct';
@@ -28,7 +28,7 @@ interface Product {
     brandId: string;
     description: string;
     category?: Category; // Thêm category vào đây
-    brand?:Brand;
+    brand?: Brand;
 }
 
 
@@ -89,14 +89,14 @@ const TableProduct: React.FC = () => {
         formData.append('Brand_Id', editProduct.brandId ?? '');
         formData.append('Description', editProduct.description ?? '');
         formData.append('Slug', editProduct.slug ?? '');
-
+        console.log(editProduct)
         try {
             await clientAPI.service('products').put(key, formData);
             setData(prevData =>
                 prevData.map(item => (item.id === key ? { ...item, ...editProduct } : item))
             );
             setEditId(null);
-            window.location.reload(); // Reload lại toàn bộ trang
+            // window.location.reload(); // Reload lại toàn bộ trang
         } catch (error) {
             console.error('Error saving product:', error);
         }
@@ -171,7 +171,7 @@ const TableProduct: React.FC = () => {
                         onFocus={() => {
                             // Thiết lập giá trị ban đầu nếu chưa có
                             if (!editProduct.id) {
-                                setEditProduct({ 
+                                setEditProduct({
                                     ...record,  // Giữ nguyên dữ liệu của record
                                     id: record.id,
                                     categoryId: record.category?.id
@@ -180,8 +180,8 @@ const TableProduct: React.FC = () => {
                         }}
                         onChange={(value) => {
                             if (value !== editProduct.categoryId) {
-                                setEditProduct(prev => ({ 
-                                    ...prev, 
+                                setEditProduct(prev => ({
+                                    ...prev,
                                     categoryId: value
                                 }));
                             }
@@ -209,7 +209,7 @@ const TableProduct: React.FC = () => {
                         value={editProduct.brandId ?? record.brand?.id}
                         onFocus={() => {
                             if (!editProduct.id) {
-                                setEditProduct({ 
+                                setEditProduct({
                                     ...record,  // Giữ nguyên dữ liệu của record
                                     id: record.id,
                                     brandId: record.brand?.id
@@ -218,8 +218,8 @@ const TableProduct: React.FC = () => {
                         }}
                         onChange={(value) => {
                             if (value !== editProduct.brandId) {
-                                setEditProduct(prev => ({ 
-                                    ...prev, 
+                                setEditProduct(prev => ({
+                                    ...prev,
                                     brandId: value
                                 }));
                             }
@@ -236,9 +236,9 @@ const TableProduct: React.FC = () => {
                     record.brand?.name || 'Không có thương hiệu'
                 )
             ),
-        },        
-        
-        
+        },
+
+
         {
             title: 'Slug',
             dataIndex: 'slug',
@@ -360,14 +360,15 @@ const TableProduct: React.FC = () => {
             ),
         },
     ];
-    
+
 
 
     return (
         <div className="p-4">
             <Search placeholder="Nhập từ khóa tìm kiếm" className="mb-4" />
             <Button type="primary" className="mb-4" onClick={handleAddNew}>Thêm mới</Button>
-            <Modal isOpen={isModalVisible} onRequestClose={handleModalCancel}>
+            <Modal isOpen={isModalVisible} ariaHideApp={false}
+                onRequestClose={handleModalCancel}>
                 <CreateProduct />
                 <div className="flex justify-end mt-4">
                     <Button type="primary" onClick={handleModalOk}>OK</Button>
@@ -389,8 +390,8 @@ const TableProduct: React.FC = () => {
                     pageSizeOptions: ['5', '10', '15', '20'],
                 }}
             />
-            
-            <Modal isOpen={isEditModalVisible} onRequestClose={handleEditModalCancel}>
+
+            <Modal isOpen={isEditModalVisible} onRequestClose={handleEditModalCancel} ariaHideApp={false}>
                 {editProductItemId && <EditProductItem productId={editProductItemId} />}
                 <div className="flex justify-end mt-4">
                     <Button type="primary" onClick={handleEditModalOk}>OK</Button>

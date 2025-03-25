@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen h-screen">
+    <div className="flex min-h-screen h-full">
       <Sidebar />
       <div className="flex-1">
         <Navbar />

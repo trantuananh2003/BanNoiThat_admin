@@ -8,7 +8,8 @@ interface ProductItem {
     price: number;
     salePrice: number;
     sku: string;
-    image: File | null;
+    imageProductItem: any;
+    imageProductItemUrl?: string;
 }
 
 interface Props {
@@ -47,11 +48,22 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
     };
 
     const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return; // Kiểm tra nếu files là null hoặc rỗng
-        setProductItems((prev) =>
-            prev.map((item, i) => (i === index ? { ...item, image: files[0] } : item))
-        );
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            setProductItems((prev) =>
+                prev.map((item, i) => (i === index ? { ...item, imageProductItem: file } : item))
+            );
+
+            reader.onload = (e) => {
+                const imgUrl = e.target?.result as string;
+                setProductItems((prev) => {
+                    return prev.map((item, i) => (i === index ? { ...item, imageProductItemUrl: imgUrl } : item))
+                });
+            };
+        }
     };
 
     const handleClose = () => {
@@ -60,7 +72,7 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-    
+
         // Nếu có ảnh, dùng FormData để gửi file
         const formData = new FormData();
         productItems.forEach((items, index) => {
@@ -70,22 +82,22 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
             formData.append(`items[${index}][price]`, items.price.toString());
             formData.append(`items[${index}][salePrice]`, items.salePrice.toString());
             formData.append(`items[${index}][sku]`, items.sku);
-            if (items.image) {
-                formData.append(`productItems[${index}][imageUrl]`, items.image);
+            if (items.imageProductItem) {
+                formData.append(`items[${index}].imageProductItem`, items.imageProductItem);
             }
         });
-    
         try {
             const response = await clientAPI.service('products').put(`${productId}/product-items`, formData);
+
             console.log('Response:', response);
         } catch (error) {
             console.error('Error submitting:', error);
         }
     };
-    
+
 
     const addProductItem = () => {
-        setProductItems((prev) => [...prev, { id: null, quantity: 1, nameOption: '', price: 0, salePrice: 0, sku: '', image: null }]);
+        setProductItems((prev) => [...prev, { id: null, quantity: 1, nameOption: '', price: 0, salePrice: 0, sku: '', imageProductItem: null }]);
     };
 
     if (!isVisible) return null;
@@ -109,8 +121,12 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
                             <label className="block text-gray-700">SKU:</label>
                             <input type="text" name="sku" value={item.sku} onChange={(e) => handleChange(index, e)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                             <label className="block text-gray-700">Hình ảnh:</label>
-                            <input type="file" accept="image/*" onChange={(e) => handleImageChange(index, e)} className="mt-1 block w-full" />
-                        </div>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleImageChange(index, e)}
+                                className="mt-1 block w-full max-w-xs"
+                            />                        </div>
                     ))}
                 </div>
                 <button type="button" onClick={addProductItem} className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">+ Thêm sản phẩm</button>

@@ -6,7 +6,7 @@ interface ProductItem {
     price: number;
     salePrice: number;
     sku: string;
-    image: File | null;
+    image: any | null;
 }
 
 const CreateProductItem: React.FC = () => {
@@ -29,10 +29,10 @@ const CreateProductItem: React.FC = () => {
         });
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setProductItem({ ...productItem, image: e.target.files[0] });
-        }
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files && e.target.files[0];
+        console.log("test product")
+        setProductItem({ ...productItem, image: file });
     };
 
     const handleClose = () => {
@@ -107,8 +107,8 @@ const CreateProductItem: React.FC = () => {
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={handleImageChange}
-                            className="mt-1 block w-full"
+                            onChange={handleFileChange}
+                            className="mt-1 block w-full max-w-xs"
                         />
                     </div>
                 </div>

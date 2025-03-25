@@ -17,16 +17,16 @@ const TableBrand: React.FC = () => {
     const [newBrandName, setNewBrandName] = useState<string>('');
     const [newSlug, setNewSlug] = useState<string>('');
 
-    useEffect(() => {
-        const fetchBrands = async () => {
-            try {
-                const response: { result: Brand[] } = await clientAPI.service('Brands').find();
-                setData(response.result);
-            } catch (error) {
-                console.error('Error fetching brands:', error);
-            }
-        };
+    const fetchBrands = async () => {
+        try {
+            const response: { result: Brand[] } = await clientAPI.service('Brands').find();
+            setData(response.result);
+        } catch (error) {
+            console.error('Error fetching brands:', error);
+        }
+    };
 
+    useEffect(() => {
         fetchBrands();
     }, [editId]);
 
@@ -41,9 +41,10 @@ const TableBrand: React.FC = () => {
             const formData = new FormData();
             formData.append('Name', editBrandName);
             formData.append('Slug', editSlug);
-            clientAPI.service('Brands').put(editId, formData);
+            await clientAPI.service('Brands').put(editId, formData);
             setEditId(null);
         }
+        fetchBrands();
     };
 
     const handleDelete = async (id: string) => {
@@ -62,7 +63,7 @@ const TableBrand: React.FC = () => {
         if (newBrandName.trim() !== '' && newSlug.trim() !== '') {
             try {
                 const formData = new FormData();
-                formData.append('BrandName', newBrandName);
+                formData.append('Name', newBrandName);
                 formData.append('Slug', newSlug);
                 const response: Brand = await clientAPI.service('Brands').create(formData);
                 setData(prevData => [...prevData, response]);

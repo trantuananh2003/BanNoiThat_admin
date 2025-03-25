@@ -141,6 +141,17 @@ const OrderPage = () => {
                     </div>
                   </div>
                 }
+                {
+                  order.orderStatus === "Processing" &&
+                  <div className="flex gap-3 justify-end">
+                    <div className="flex justify-end">
+                      <button className="bg-green-600 rounded-md px-2 py-1 text-white" onClick={() => triggerUpdateStatusOrder(order.id, "Processing")}>Xác nhận</button>
+                    </div>
+                    <div className="flex justify-end">
+                      <button className="bg-red-600 rounded-md px-2 py-1 text-white" onClick={() => triggerUpdateStatusOrder(order.id, "Cancelled")}>Hủy đơn</button>
+                    </div>
+                  </div>
+                }
               </div>
             ))
           )}

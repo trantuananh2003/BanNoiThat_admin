@@ -51,7 +51,7 @@ class RestClient {
   config(baseURL: string, headers: Record<string, string> = {}): this {
     this.axiosInstance = axios.create({
       baseURL,
-      timeout: 100000,
+      timeout: 1000000,
       withCredentials: true,
       headers,
     });

@@ -13,7 +13,7 @@ const Sidebar = () => {
     "flex items-center p-3 my-1 rounded-lg transition-all duration-300 hover:bg-purple-700 hover:scale-105";
 
   return (
-    <div className="w-64 bg-gradient-to-b from-blue-800 to-blue-600 text-white h-screen p-6 shadow-2xl">
+    <div className="w-64 bg-gradient-to-b from-blue-800 to-blue-600 text-white p-6 shadow-2xl">
       <h2 className="text-3xl font-extrabold mb-8 text-center tracking-wide">
         ADMIN PANEL
       </h2>
