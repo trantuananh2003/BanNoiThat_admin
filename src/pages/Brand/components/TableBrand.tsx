@@ -77,11 +77,6 @@ const TableBrand: React.FC = () => {
 
     const columns = [
         {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id'
-        },
-        {
             title: 'Brand Name',
             dataIndex: 'name',
             key: 'brandName',

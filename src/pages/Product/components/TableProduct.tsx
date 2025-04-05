@@ -31,12 +31,12 @@ interface Product {
     brand?: Brand;
 }
 
-
 interface Brand {
     id: string;
     name: string;
     slug: string;
 }
+
 const TableProduct: React.FC = () => {
     const [data, setData] = useState<Product[]>([]);
     const [editId, setEditId] = useState<string | null>(null);
@@ -46,6 +46,8 @@ const TableProduct: React.FC = () => {
     const [pageSize, setPageSize] = useState<number>(5);
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isEditProductItemModalVisible, setIsEditProductItemsModalVisible] = useState(false);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -114,10 +116,7 @@ const TableProduct: React.FC = () => {
         }
     };
 
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-
-    const handleAddNew = () => {
+    const handleAddNewProduct = () => {
         setIsModalVisible(true);
     };
 
@@ -130,18 +129,13 @@ const TableProduct: React.FC = () => {
         setIsModalVisible(false);
     };
 
+    const handleEditModalCancel = () => {
+        setIsEditProductItemsModalVisible(false);
+    };
+
     const handleEditProductItem = (id: string) => {
         setEditProductItemId(id);
-        setIsEditModalVisible(true);
-    };
-
-    const handleEditModalOk = () => {
-        // Handle the logic for adding a new product here
-        setIsEditModalVisible(false);
-    };
-
-    const handleEditModalCancel = () => {
-        setIsEditModalVisible(false);
+        setIsEditProductItemsModalVisible(true);
     };
 
     const columns = [
@@ -316,28 +310,28 @@ const TableProduct: React.FC = () => {
             dataIndex: 'keyword',
             key: 'keyword',
         },
-        {
-            title: 'Tiêu biểu',
-            dataIndex: 'featured',
-            key: 'featured',
-            render: (featured: boolean) => (
-                <Checkbox
-                    checked={featured}
-                    onChange={(e) => setEditProduct({ ...editProduct, featured: e.target.checked })}
-                />
-            ),
-        },
-        {
-            title: 'Hiển thị',
-            dataIndex: 'visible',
-            key: 'visible',
-            render: (visible: boolean) => (
-                <Checkbox
-                    checked={visible}
-                    onChange={(e) => setEditProduct({ ...editProduct, visible: e.target.checked })}
-                />
-            ),
-        },
+        // {
+        //     title: 'Tiêu biểu',
+        //     dataIndex: 'featured',
+        //     key: 'featured',
+        //     render: (featured: boolean) => (
+        //         <Checkbox
+        //             checked={featured}
+        //             onChange={(e) => setEditProduct({ ...editProduct, featured: e.target.checked })}
+        //         />
+        //     ),
+        // },
+        // {
+        //     title: 'Hiển thị',
+        //     dataIndex: 'visible',
+        //     key: 'visible',
+        //     render: (visible: boolean) => (
+        //         <Checkbox
+        //             checked={visible}
+        //             onChange={(e) => setEditProduct({ ...editProduct, visible: e.target.checked })}
+        //         />
+        //     ),
+        // },
         {
             title: 'Tác vụ',
             dataIndex: 'actions',
@@ -352,7 +346,7 @@ const TableProduct: React.FC = () => {
                     ) : (
                         <div className='flex space-x-2'>
                             <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-                            <Button type="primary" icon={<ToolOutlined />} onClick={() => handleEditProductItem(record.id)}> Variations</Button>
+                            <Button type="primary" icon={<ToolOutlined />} onClick={() => handleEditProductItem(record.id)}> Phân loại</Button>
                             <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
                         </div>
                     )}
@@ -361,12 +355,11 @@ const TableProduct: React.FC = () => {
         },
     ];
 
-
-
     return (
         <div className="p-4">
             <Search placeholder="Nhập từ khóa tìm kiếm" className="mb-4" />
-            <Button type="primary" className="mb-4" onClick={handleAddNew}>Thêm mới</Button>
+            {/*Thêm mới sản phẩm*/}
+            <Button type="primary" className="mb-4" onClick={handleAddNewProduct}>Thêm mới</Button>
             <Modal isOpen={isModalVisible} ariaHideApp={false}
                 onRequestClose={handleModalCancel}>
                 <CreateProduct />
@@ -390,13 +383,10 @@ const TableProduct: React.FC = () => {
                     pageSizeOptions: ['5', '10', '15', '20'],
                 }}
             />
-
-            <Modal isOpen={isEditModalVisible} onRequestClose={handleEditModalCancel} ariaHideApp={false}>
+            {/*Cập nhập product items*/}
+            <Modal isOpen={isEditProductItemModalVisible} onRequestClose={handleEditModalCancel} ariaHideApp={false}>
+                <Button onClick={handleEditModalCancel} className="fixed top-10 right-10 m-3 bg-red-500 text-white">X</Button>
                 {editProductItemId && <EditProductItem productId={editProductItemId} />}
-                <div className="flex justify-end mt-4">
-                    <Button type="primary" onClick={handleEditModalOk}>OK</Button>
-                    <Button onClick={handleEditModalCancel} className="ml-2">Cancel</Button>
-                </div>
             </Modal>
         </div>
     );

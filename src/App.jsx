@@ -3,7 +3,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import Auth from "./pages/Auth/Auth";
 import Brand from "./pages/Brand/Brand";
 import Category from "./pages/Category/Category";
-import Product from "./pages/Product/Product";
+import Product from "./pages/Product";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";

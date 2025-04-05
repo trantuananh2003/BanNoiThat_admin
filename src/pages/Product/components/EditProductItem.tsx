@@ -10,6 +10,7 @@ interface ProductItem {
     sku: string;
     imageProductItem: any;
     imageProductItemUrl?: string;
+    isDelete?: boolean;
 }
 
 interface Props {
@@ -18,7 +19,6 @@ interface Props {
 
 const ProductItemForm: React.FC<Props> = ({ productId }) => {
     const [productItems, setProductItems] = useState<ProductItem[]>([]);
-    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -37,6 +37,32 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
 
         fetchProduct();
     }, [productId]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Nếu có ảnh, dùng FormData để gửi file
+        const formData = new FormData();
+        productItems.forEach((items, index) => {
+            formData.append(`items[${index}].id`, items.id ? items.id.toString() : "")
+            formData.append(`items[${index}].nameOption`, items.nameOption);
+            formData.append(`items[${index}].quantity`, items.quantity.toString());
+            formData.append(`items[${index}].price`, items.price.toString());
+            formData.append(`items[${index}].salePrice`, items.salePrice.toString());
+            formData.append(`items[${index}].sku`, items.sku);
+            formData.append(`items[${index}].isDelete`, items.isDelete ? items.isDelete.toString() : "false");
+
+            if (items.imageProductItem) {
+                formData.append(`items[${index}].imageProductItem`, items.imageProductItem);
+            }
+        });
+        try {
+            const response = await clientAPI.service('products').put(`${productId}/product-items`, formData);
+            console.log('Response:', response);
+        } catch (error) {
+            console.error('Error submitting:', error);
+        }
+    };
 
     const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -66,50 +92,23 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
         }
     };
 
-    const handleClose = () => {
-        setIsVisible(false);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Nếu có ảnh, dùng FormData để gửi file
-        const formData = new FormData();
-        productItems.forEach((items, index) => {
-            formData.append(`items[${index}][id]`, items.id ? items.id.toString() : "")
-            formData.append(`items[${index}][nameOption]`, items.nameOption);
-            formData.append(`items[${index}][quantity]`, items.quantity.toString());
-            formData.append(`items[${index}][price]`, items.price.toString());
-            formData.append(`items[${index}][salePrice]`, items.salePrice.toString());
-            formData.append(`items[${index}][sku]`, items.sku);
-            if (items.imageProductItem) {
-                formData.append(`items[${index}].imageProductItem`, items.imageProductItem);
-            }
-        });
-        try {
-            const response = await clientAPI.service('products').put(`${productId}/product-items`, formData);
-
-            console.log('Response:', response);
-        } catch (error) {
-            console.error('Error submitting:', error);
-        }
-    };
-
-
     const addProductItem = () => {
         setProductItems((prev) => [...prev, { id: null, quantity: 1, nameOption: '', price: 0, salePrice: 0, sku: '', imageProductItem: null }]);
     };
 
-    if (!isVisible) return null;
+    const deleteProductItem = (index: number) => {
+        setProductItems(prevItems => prevItems.map((item, i) => i === index ? { ...item, isDelete: true } : item));
+    }
 
     return (
-        <div className="relative max-w-6xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-            <button onClick={handleClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div className="w-full h-full">
             <h2 className="text-2xl font-bold mb-6">{productId ? `Chỉnh sửa sản phẩm ID: ${productId}` : 'Tạo sản phẩm mới'}</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="flex flex-wrap gap-4">
+            <form onSubmit={handleSubmit} >
+                <div className="flex gap-4 overflow-x-scroll ">
                     {productItems.map((item, index) => (
-                        <div key={index} className="flex flex-col p-4 border rounded-lg shadow-sm w-1/3">
+                        <div key={index} className="flex flex-col min-w-[300px] p-4 border rounded-lg shadow-sm">
+
+                            {item.isDelete ? <div className="text-red-400 font-bold text-end">Đã xóa</div> : <div onClick={() => deleteProductItem(index)} className="text-red-400 font-bold text-end hover: cursor-pointer">X</div>}
                             <label className="block text-gray-700">Số lượng:</label>
                             <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleChange(index, e)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                             <label className="block text-gray-700">Tên Option:</label>
@@ -126,7 +125,8 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
                                 accept="image/*"
                                 onChange={(e) => handleImageChange(index, e)}
                                 className="mt-1 block w-full max-w-xs"
-                            />                        </div>
+                            />
+                        </div>
                     ))}
                 </div>
                 <button type="button" onClick={addProductItem} className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">+ Thêm sản phẩm</button>
