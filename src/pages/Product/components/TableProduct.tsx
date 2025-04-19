@@ -5,6 +5,7 @@ import clientAPI from '../../../client-api/rest-client';
 import CreateProduct from './CreateProduct';
 import Modal from 'react-modal';
 import EditProductItem from './EditProductItem';
+import { getConfirmLocale } from 'antd/es/modal/locale';
 
 const { Search } = Input;
 
@@ -27,6 +28,7 @@ interface Product {
     categoryId: string;
     brandId: string;
     description: string;
+    isDeleted: boolean;
     category?: Category; // Thêm category vào đây
     brand?: Brand;
 }
@@ -47,12 +49,13 @@ const TableProduct: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<Brand[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [currentStatusProduct, setCurrentStatusProduct] = useState<Boolean>(false);
     const [isEditProductItemModalVisible, setIsEditProductItemsModalVisible] = useState(false);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response: { result: Product[] } = await clientAPI.service('Products').find(`PageSize=${20}&PageCurrent=${currentPage}`);
+                const response: { result: Product[] } = await clientAPI.service('Products').find(`PageSize=${20}&PageCurrent=${currentPage}&IsDeleted=${currentStatusProduct}`);
                 setData(response.result);
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -74,7 +77,7 @@ const TableProduct: React.FC = () => {
         fetchCategories();
         fetchBrands();
         fetchProducts();
-    }, []);
+    }, [currentStatusProduct]);
 
     const handleEdit = (record: Product) => {
         setEditId(record.id);
@@ -104,11 +107,22 @@ const TableProduct: React.FC = () => {
         }
     };
 
-    const handleDelete = async (key: string) => {
-        const confirmDelete = window.confirm('Are you sure you want to delete this product?');
-        if (confirmDelete) {
+    const handleDelete = async (key: string, isDeleted: Boolean) => {
+        let confirm;
+
+        if (isDeleted) {
+            confirm = window.confirm('Are you sure you want to delete this product?');
             try {
                 await clientAPI.service('Products').remove(key);
+                setData((prevData) => prevData.filter((item) => item.id !== key));
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
+        }
+        else {
+            confirm = window.confirm('Recover this product?');
+            try {
+                await clientAPI.service('Products').remove(key + '?isDeleted=false');
                 setData((prevData) => prevData.filter((item) => item.id !== key));
             } catch (error) {
                 console.error('Error deleting product:', error);
@@ -137,6 +151,17 @@ const TableProduct: React.FC = () => {
         setEditProductItemId(id);
         setIsEditProductItemsModalVisible(true);
     };
+
+    const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        if (event.target.value === 'isDeleted') {
+            setCurrentStatusProduct(true);
+        }
+        else {
+            setCurrentStatusProduct(false);
+        }
+    };
+
+    console.log(data);
 
     const columns = [
         {
@@ -347,7 +372,11 @@ const TableProduct: React.FC = () => {
                         <div className='flex space-x-2'>
                             <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
                             <Button type="primary" icon={<ToolOutlined />} onClick={() => handleEditProductItem(record.id)}> Phân loại</Button>
-                            <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+                            {
+                                record.isDeleted === false ? (<Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id, true)} />
+                                ) : (<Button type="primary" danger onClick={() => handleDelete(record.id, false)} > Khôi phục </Button>
+                                )
+                            }
                         </div>
                     )}
                 </div>
@@ -359,7 +388,25 @@ const TableProduct: React.FC = () => {
         <div className="p-4">
             <Search placeholder="Nhập từ khóa tìm kiếm" className="mb-4" />
             {/*Thêm mới sản phẩm*/}
-            <Button type="primary" className="mb-4" onClick={handleAddNewProduct}>Thêm mới</Button>
+            <div className='flex justify-between items-center mb-4'>
+                <Button type="primary" className="mb-4" onClick={handleAddNewProduct}>Thêm mới</Button>
+                <div className='flex'>
+                    <label htmlFor="status" className="text-sm font-medium text-gray-700" >
+                        Trạng thái sản phẩm:
+                    </label>
+                    <select
+                        name="status"
+                        id="productStatus"
+                        onChange={handleStatusChange}
+                        className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="none">Chưa xóa</option>
+                        <option value="isDeleted">Đã xóa</option>
+                    </select>
+                </div>
+            </div>
+
+
             <Modal isOpen={isModalVisible} ariaHideApp={false}
                 onRequestClose={handleModalCancel}>
                 <CreateProduct />
@@ -386,9 +433,9 @@ const TableProduct: React.FC = () => {
             {/*Cập nhập product items*/}
             <Modal isOpen={isEditProductItemModalVisible} onRequestClose={handleEditModalCancel} ariaHideApp={false}>
                 <Button onClick={handleEditModalCancel} className="fixed top-10 right-10 m-3 bg-red-500 text-white">X</Button>
-                {editProductItemId && <EditProductItem productId={editProductItemId} />}
+                {editProductItemId && <EditProductItem productId={editProductItemId} setEditProduct={setIsEditProductItemsModalVisible} />}
             </Modal>
-        </div>
+        </div >
     );
 };
 

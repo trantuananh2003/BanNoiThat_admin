@@ -9,32 +9,33 @@ interface ProductItem {
     salePrice: number;
     sku: string;
     imageProductItem: any;
-    imageProductItemUrl?: string;
+    imageUrl?: string;
     isDelete?: boolean;
 }
 
 interface Props {
     productId?: string;
+    setEditProduct: any;
 }
 
-const ProductItemForm: React.FC<Props> = ({ productId }) => {
+const ProductItemForm: React.FC<Props> = ({ productId, setEditProduct }) => {
     const [productItems, setProductItems] = useState<ProductItem[]>([]);
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            if (productId) {
-                try {
-                    const response = await clientAPI.service("products").get(productId.toString());
-                    const productData = response as { result: { productItems: ProductItem[] } };
-                    if (productData.result.productItems) {
-                        setProductItems(productData.result.productItems);
-                    }
-                } catch (error) {
-                    console.error("Error fetching product:", error);
+    const fetchProduct = async () => {
+        if (productId) {
+            try {
+                const response = await clientAPI.service("products").get(productId.toString());
+                const productData = response as { result: { productItems: ProductItem[] } };
+                if (productData.result.productItems) {
+                    setProductItems(productData.result.productItems);
                 }
+            } catch (error) {
+                console.error("Error fetching product:", error);
             }
-        };
+        }
+    };
 
+    useEffect(() => {
         fetchProduct();
     }, [productId]);
 
@@ -62,6 +63,7 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
         } catch (error) {
             console.error('Error submitting:', error);
         }
+        setEditProduct(false);
     };
 
     const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +78,6 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
     const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
-
             const reader = new FileReader();
             reader.readAsDataURL(file);
             setProductItems((prev) =>
@@ -86,7 +87,7 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
             reader.onload = (e) => {
                 const imgUrl = e.target?.result as string;
                 setProductItems((prev) => {
-                    return prev.map((item, i) => (i === index ? { ...item, imageProductItemUrl: imgUrl } : item))
+                    return prev.map((item, i) => (i === index ? { ...item, imageUrl: imgUrl } : item))
                 });
             };
         }
@@ -97,7 +98,7 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
     };
 
     const deleteProductItem = (index: number) => {
-        setProductItems(prevItems => prevItems.map((item, i) => i === index ? { ...item, isDelete: true } : item));
+        setProductItems(prevItems => prevItems.map((item, i) => i === index ? { ...item, isDelete: !item.isDelete } : item));
     }
 
     return (
@@ -107,8 +108,7 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
                 <div className="flex gap-4 overflow-x-scroll ">
                     {productItems.map((item, index) => (
                         <div key={index} className="flex flex-col min-w-[300px] p-4 border rounded-lg shadow-sm">
-
-                            {item.isDelete ? <div className="text-red-400 font-bold text-end">Đã xóa</div> : <div onClick={() => deleteProductItem(index)} className="text-red-400 font-bold text-end hover: cursor-pointer">X</div>}
+                            {item.isDelete ? <div className="text-red-400 font-bold text-end hover:cursor-pointer" onClick={() => deleteProductItem(index)} >Đã xóa</div> : <div onClick={() => deleteProductItem(index)} className="text-red-400 font-bold text-end hover: cursor-pointer">X</div>}
                             <label className="block text-gray-700">Số lượng:</label>
                             <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleChange(index, e)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                             <label className="block text-gray-700">Tên Option:</label>
@@ -120,12 +120,24 @@ const ProductItemForm: React.FC<Props> = ({ productId }) => {
                             <label className="block text-gray-700">SKU:</label>
                             <input type="text" name="sku" value={item.sku} onChange={(e) => handleChange(index, e)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                             <label className="block text-gray-700">Hình ảnh:</label>
+                            <label
+                                className="block cursor-pointer bg-blue-600 text-white text-center px-4 py-2 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                htmlFor={"imageFile" + item.sku}
+                            >
+                                Chọn hình
+                            </label>
                             <input
                                 type="file"
                                 accept="image/*"
+                                id={"imageFile" + item.sku}
                                 onChange={(e) => handleImageChange(index, e)}
-                                className="mt-1 block w-full max-w-xs"
+                                className="invisible"
                             />
+                            {
+                                item.imageUrl && (
+                                    <img src={item.imageUrl} alt="Hình ảnh sản phẩm" className="w-32 h-32 mt-2 shadow-md" />
+                                )
+                            }
                         </div>
                     ))}
                 </div>
