@@ -1,0 +1,371 @@
+import * as React from "react";
+import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import CssBaseline from "@mui/material/CssBaseline";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import InboxIcon from "@mui/icons-material/MoveToInbox";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import CategoryIcon from "@mui/icons-material/Category";
+import StorageIcon from "@mui/icons-material/Storage";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import { useNavigate } from "react-router-dom";
+import { Avatar, Button, Menu, MenuItem, Tooltip } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { setUser, emptyUserState } from "../redux/features/userSlice";
+import { Logout, PersonAdd, Settings } from "@mui/icons-material";
+const drawerWidth = 190;
+
+const NAVIGATION = [
+  {
+    id: 0,
+    icon: <StorefrontIcon />,
+    label: "Brands",
+    route: "/admin/brands",
+  },
+  {
+    id: 1,
+    icon: <CategoryIcon />,
+    label: "Categories",
+    route: "/admin/categories",
+  },
+  {
+    id: 2,
+    icon: <StorageIcon />,
+    label: "Products",
+    route: "/admin/products",
+  },
+  {
+    id: 3,
+    icon: <AddShoppingCartIcon />,
+    label: "Orders",
+    route: "/admin/orders",
+  },
+  {
+    id: 4,
+    icon: <PeopleAltIcon />,
+    label: "Users",
+    route: "/admin/users",
+  },
+  {
+    id: 5,
+    icon: <AnalyticsIcon />,
+    label: "Analysis",
+    route: "/admin/analysis",
+  },
+];
+
+const openedMixin = (theme: Theme): CSSObject => ({
+  width: drawerWidth,
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: "hidden",
+});
+
+const closedMixin = (theme: Theme): CSSObject => ({
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: "hidden",
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up("sm")]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
+});
+
+const DrawerHeader = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  padding: theme.spacing(0, 1),
+  ...theme.mixins.toolbar,
+}));
+
+interface AppBarProps extends MuiAppBarProps {
+  open?: boolean;
+}
+
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== "open",
+})<AppBarProps>(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(["width", "margin"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        marginLeft: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
+        transition: theme.transitions.create(["width", "margin"], {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+      },
+    },
+  ],
+}));
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  boxSizing: "border-box",
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        ...openedMixin(theme),
+        "& .MuiDrawer-paper": openedMixin(theme),
+      },
+    },
+    {
+      props: ({ open }) => !open,
+      style: {
+        ...closedMixin(theme),
+        "& .MuiDrawer-paper": closedMixin(theme),
+      },
+    },
+  ],
+}));
+
+export default function Sidenav() {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const openAccountSettings = Boolean(anchorEl);
+  const handleClickAccountSettings = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseAccountSettings = () => {
+    setAnchorEl(null);
+  };
+
+  const onLogout = () => {
+    setAnchorEl(null);
+    localStorage.removeItem("userToken");
+    dispatch(setUser(emptyUserState));
+    navigate("/");
+  };
+
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+      <AppBar position="fixed" open={open}>
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerOpen}
+            edge="start"
+            sx={{
+              marginRight: 5,
+              display: open ? 'none' : 'flex',
+              pointerEvents: {
+                xs: 'none',
+                sm: 'auto',
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            ADMIN MANAGE PAGE
+          </Typography>
+          <Tooltip title="Account settings">
+            <IconButton
+              onClick={handleClickAccountSettings}
+              size="large"
+              sx={{ ml: 2, position: "absolute", right: "20px", top: "5px" }}
+              aria-controls={open ? "account-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? "true" : undefined}
+            >
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                }}
+              ></Avatar>
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            id="account-menu"
+            open={openAccountSettings}
+            onClose={handleCloseAccountSettings}
+            onClick={handleCloseAccountSettings}
+            slotProps={{
+              paper: {
+                elevation: 0,
+                sx: {
+                  overflow: "visible",
+                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                  mt: -0.2,
+                  "& .MuiAvatar-root": {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1,
+                  },
+                  "&::before": {
+                    content: '""',
+                    display: "block",
+                    position: "absolute",
+                    top: 0,
+                    right: 22,
+                    width: 10,
+                    height: 10,
+                    bgcolor: "background.paper",
+                    transform: "translateY(-50%) rotate(45deg)",
+                    zIndex: 0,
+                  },
+                },
+              },
+            }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+          >
+            <MenuItem onClick={handleCloseAccountSettings}>
+              <Avatar /> Profile
+            </MenuItem>
+            <MenuItem onClick={handleCloseAccountSettings}>
+              <Avatar /> My account
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleCloseAccountSettings}>
+              <ListItemIcon>
+                <PersonAdd fontSize="small" />
+              </ListItemIcon>
+              Add another account
+            </MenuItem>
+            <MenuItem onClick={handleCloseAccountSettings}>
+              <ListItemIcon>
+                <Settings fontSize="small" />
+              </ListItemIcon>
+              Settings
+            </MenuItem>
+            <MenuItem onClick={onLogout}>
+              <ListItemIcon>
+                <Logout fontSize="small" />
+              </ListItemIcon>
+              Logout
+            </MenuItem>
+          </Menu>
+        </Toolbar>
+      </AppBar>
+      <Drawer variant="permanent" open={open} sx={{backgroundColor: "#a6a6a6"}}>
+        <DrawerHeader
+          onClick={handleDrawerClose}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: "action.hover",
+            },
+          }}
+        >
+          <MenuIcon />
+        </DrawerHeader>
+        <Divider />
+        <List>
+          {NAVIGATION.map((text) => (
+            <ListItem
+              key={text.id}
+              disablePadding
+              sx={{ display: "block" }}
+              onClick={() => navigate(text.route)}
+            >
+              <Tooltip title={open ? "" : text.label} placement="right">
+                <ListItemButton
+                  sx={[
+                    {
+                      minHeight: 48,
+                      px: 2.5,
+                    },
+                    open
+                      ? {
+                          justifyContent: "initial",
+                        }
+                      : {
+                          justifyContent: "center",
+                        },
+                  ]}
+                >
+                  <ListItemIcon
+                    sx={[
+                      {
+                        minWidth: 0,
+                        justifyContent: "center",
+                      },
+                      open
+                        ? {
+                            mr: 3,
+                          }
+                        : {
+                            mr: "auto",
+                          },
+                    ]}
+                  >
+                    {text.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={text.label}
+                    sx={[
+                      open
+                        ? {
+                            opacity: 1,
+                          }
+                        : {
+                            opacity: 0,
+                          },
+                    ]}
+                  />
+                </ListItemButton>
+              </Tooltip>
+            </ListItem>
+          ))}
+        </List>
+        <Divider />
+      </Drawer>
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <DrawerHeader />
+      </Box>
+    </Box>
+  );
+}
