@@ -1,22 +1,20 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import User from '../model/User';
-import { setUser, emptyUserState } from '../redux/features/userSlice';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import User from "../model/User";
+import { setUser, emptyUserState } from "../redux/features/userSlice";
 
-const Navbar: React.FC = () => {
+const Navbar1: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dispatch = useDispatch();
-  const userData: User = useSelector(
-    (state: RootState) => state.users
-  );
+  const userData: User = useSelector((state: RootState) => state.users);
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
   const onLogout = () => {
-    localStorage.removeItem('userToken');
+    localStorage.removeItem("userToken");
     dispatch(setUser(emptyUserState));
     window.location.reload();
   };
@@ -36,7 +34,12 @@ const Navbar: React.FC = () => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
         {dropdownOpen && (
@@ -54,4 +57,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar;
+export default Navbar1;
