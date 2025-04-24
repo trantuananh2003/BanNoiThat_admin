@@ -63,6 +63,7 @@ const Login: React.FC = () => {
                                 placeholder="Số điện thoại / Email"
                                 value={account}
                                 onChange={(e) => setAccount(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                                 className="w-full px-4 py-2 pl-10 border rounded-md focus:ring focus:ring-red-300 focus:outline-none"
                             />
                         </div>
@@ -83,6 +84,7 @@ const Login: React.FC = () => {
                                 placeholder="Mật khẩu"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                                 className="w-full px-4 py-2 pl-10 border rounded-md focus:ring focus:ring-red-300 focus:outline-none"
                             />
                             <button

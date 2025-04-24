@@ -26,10 +26,9 @@ import {
 import clientAPI from "client-api/rest-client";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import DialogCreateBrand from "./dialog-create-brand";
 
 interface Column {
-  id: "name" | "slug";
+  id: "id" | "fullName" | "email";
   label: string;
   minWidth?: number;
   align?: "right";
@@ -37,44 +36,53 @@ interface Column {
 }
 
 const columns: readonly Column[] = [
-  { id: "name", label: "Brand Name", minWidth: 170 },
-  { id: "slug", label: "Slug", minWidth: 100 },
+  { id: "id", label: "ID", minWidth: 170 },
+  { id: "fullName", label: "Full Name", minWidth: 100 },
+  { id: "email", label: "Email", minWidth: 100 },
 ];
 
-interface Brand {
+interface User {
   id: string;
-  name: string;
-  slug: string;
+  fullName: string;
+  email: string;
+  isMale: string;
+  birthday: string;
 }
 
-export default function TableBrandExample() {
+export default function TableUserExample() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [data, setData] = useState<Brand[]>([]);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [data, setData] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
-  const [openDialogCreateBrand, setOpenDialogCreateBrand] =
-    React.useState(false);
-
-  const handleClickOpenDialogCreateBrand = () => {
-    setOpenDialogCreateBrand(true);
-  };
-
+  const [editId, setEditId] = useState<string | null>(null);
   useEffect(() => {
-    const fetchBrands = async () => {
+    const fetchUsers = async () => {
       try {
-        const response: { result: Brand[] } = await clientAPI
-          .service("Brands")
-          .find();
+        const response: { result: User[] } = await clientAPI
+          .service("users")
+          .find(`pageCurrent=${1}&pageSize=${10}`);
         setData(response.result);
       } catch (error) {
-        console.error("Error fetching brands:", error);
+        console.error("Error fetching users:", error);
       }
     };
-    fetchBrands();
+    fetchUsers();
   }, [editId]);
+  const filteredData = data.filter((user) => {
+    const matchesSearchByName = user.fullName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSearchByEmail = user.email
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === "all"; // || user.slug === filter;
+    return (matchesSearchByName || matchesSearchByEmail) && matchesFilter;
+  });
 
+  const handleEdit = (id: string) => {
+    setEditId(id);
+  };
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -85,19 +93,6 @@ export default function TableBrandExample() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
-
-  const handleEdit = (id: string) => {
-    setEditId(id);
-  };
-
-  const filteredData = data.filter((brand) => {
-    const matchesSearch = brand.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === "all" || brand.slug === filter;
-    return matchesSearch && matchesFilter;
-  });
-
   return (
     <Paper
       sx={{
@@ -120,7 +115,7 @@ export default function TableBrandExample() {
           <TextField
             variant="outlined"
             size="small"
-            placeholder="Search by brand name"
+            placeholder="Search by name or email"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
@@ -133,30 +128,24 @@ export default function TableBrandExample() {
           />
           <FormControl size="small">
             <InputLabel>Slug</InputLabel>
-            <Select
-              value={filter}
-              label="Slug"
-              onChange={(e) => setFilter(e.target.value)}
-              sx={{ minWidth: 120 }}
-            >
-              <MenuItem value="all">All</MenuItem>
-              {Array.from(new Set(data.map((item) => item.slug))).map(
-                (slug) => (
-                  <MenuItem key={slug} value={slug}>
-                    {slug}
-                  </MenuItem>
-                )
-              )}
-            </Select>
+            {/* <Select
+                  value={filter}
+                  label="Slug"
+                  onChange={(e) => setFilter(e.target.value)}
+                  sx={{ minWidth: 120 }}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  {Array.from(new Set(data.map((item) => item.slug))).map(
+                    (slug) => (
+                      <MenuItem key={slug} value={slug}>
+                        {slug}
+                      </MenuItem>
+                    )
+                  )}
+                </Select> */}
           </FormControl>
         </Stack>
-        <Button onClick={() => handleClickOpenDialogCreateBrand()}>
-          CREATE NEW BRAND
-        </Button>
-        <DialogCreateBrand
-          openDialogCreateBrand={openDialogCreateBrand}
-          onClose={() => setOpenDialogCreateBrand(false)}
-        />
+        <Button>CREATE NEW BRAND</Button>
       </Toolbar>
 
       <TableContainer sx={{ maxHeight: 500 }}>

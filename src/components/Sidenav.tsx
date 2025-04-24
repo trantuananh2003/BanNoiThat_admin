@@ -1,40 +1,37 @@
-import * as React from "react";
-import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
-import CssBaseline from "@mui/material/CssBaseline";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
+import { Logout, PersonAdd, Settings } from "@mui/icons-material";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import CategoryIcon from "@mui/icons-material/Category";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import StorageIcon from "@mui/icons-material/Storage";
+import { Avatar, Menu, MenuItem, Tooltip } from "@mui/material";
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import CssBaseline from "@mui/material/CssBaseline";
+import Divider from "@mui/material/Divider";
+import MuiDrawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import CategoryIcon from "@mui/icons-material/Category";
-import StorageIcon from "@mui/icons-material/Storage";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import { useNavigate } from "react-router-dom";
-import { Avatar, Button, Menu, MenuItem, Tooltip } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { CSSObject, styled, Theme } from "@mui/material/styles";
+import Toolbar from "@mui/material/Toolbar";
+import * as React from "react";
 import { useState } from "react";
-import { setUser, emptyUserState } from "../redux/features/userSlice";
-import { Logout, PersonAdd, Settings } from "@mui/icons-material";
-const drawerWidth = 190;
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { emptyUserState, setUser } from "../redux/features/userSlice";
+import IconBreadcrumbs from "./ui/IconBreadcrumbs";
+const drawerWidth = 170;
 
 const NAVIGATION = [
   {
     id: 0,
-    icon: <StorefrontIcon />,
+    icon: <LocalOfferIcon />,
     label: "Brands",
     route: "/admin/brands",
   },
@@ -52,7 +49,7 @@ const NAVIGATION = [
   },
   {
     id: 3,
-    icon: <AddShoppingCartIcon />,
+    icon: <ShoppingCartIcon />,
     label: "Orders",
     route: "/admin/orders",
   },
@@ -151,8 +148,33 @@ const Drawer = styled(MuiDrawer, {
   ],
 }));
 
+function stringToColor(string: string) {
+  let hash = 0;
+  let i;
+
+  for (i = 0; i < string.length; i += 1) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  let color = "#";
+
+  for (i = 0; i < 3; i += 1) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += `00${value.toString(16)}`.slice(-2);
+  }
+  return color;
+}
+
+function stringAvatar(name: string) {
+  return {
+    sx: {
+      bgcolor: stringToColor(name),
+    },
+    children: `${name.split(" ")[0][0]}${name.split(" ")[1][0]}`,
+  };
+}
+
 export default function Sidenav() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
@@ -193,18 +215,19 @@ export default function Sidenav() {
             edge="start"
             sx={{
               marginRight: 5,
-              display: open ? 'none' : 'flex',
+              display: open ? "none" : "flex",
               pointerEvents: {
-                xs: 'none',
-                sm: 'auto',
+                xs: "none",
+                sm: "auto",
               },
             }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <IconBreadcrumbs />
+          {/* <Typography variant="h6" noWrap component="div">
             ADMIN MANAGE PAGE
-          </Typography>
+          </Typography> */}
           <Tooltip title="Account settings">
             <IconButton
               onClick={handleClickAccountSettings}
@@ -215,11 +238,12 @@ export default function Sidenav() {
               aria-expanded={open ? "true" : undefined}
             >
               <Avatar
+                //{...stringAvatar("Phat Nguyen")}
                 sx={{
-                  width: 32,
-                  height: 32,
+                  width: 36,
+                  height: 36,
                 }}
-              ></Avatar>
+              />
             </IconButton>
           </Tooltip>
           <Menu
@@ -287,7 +311,17 @@ export default function Sidenav() {
           </Menu>
         </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" open={open} sx={{backgroundColor: "#a6a6a6"}}>
+      <Drawer
+        variant="permanent"
+        open={open}
+        sx={{
+          backgroundColor: "#f6f6f6",
+          "& .MuiDrawer-paper": {
+            backgroundColor: "#f6f6f6",
+            color: "#fff",
+          },
+        }}
+      >
         <DrawerHeader
           onClick={handleDrawerClose}
           sx={{
@@ -295,9 +329,10 @@ export default function Sidenav() {
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            "&:hover": {
-              backgroundColor: "action.hover",
-            },
+            // "&:hover": {
+            //   backgroundColor: "action.hover",
+            // },
+            backgroundColor: "#1976d2",
           }}
         >
           <MenuIcon />
@@ -347,6 +382,9 @@ export default function Sidenav() {
                   <ListItemText
                     primary={text.label}
                     sx={[
+                      {
+                        color: "black",
+                      },
                       open
                         ? {
                             opacity: 1,
