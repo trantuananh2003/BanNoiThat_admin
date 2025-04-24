@@ -63,15 +63,15 @@ const TableProduct: React.FC = () => {
         };
         const fetchCategories = async () => {
             // Fetch categories
-            const response1 = await clientAPI.service('Categories/admin').find();
-            const categories = (response1 as { result: Category[] }).result;
+            const responseDataCategories = await clientAPI.service('Categories/admin').find();
+            const categories = (responseDataCategories as { result: Category[] }).result;
             const childrenFilter = categories.filter(category => category.children && category.children.length > 0);
             const childrenCategories = childrenFilter.flatMap(category => category.children);
             setCategories(childrenCategories);
         };
         const fetchBrands = async () => {
-            const response2 = await clientAPI.service('Brands').find();
-            const brands = (response2 as { result: Brand[] }).result;
+            const responseDataBrands = await clientAPI.service('Brands').find();
+            const brands = (responseDataBrands as { result: Brand[] }).result;
             setBrands(brands);
         }
         fetchCategories();
