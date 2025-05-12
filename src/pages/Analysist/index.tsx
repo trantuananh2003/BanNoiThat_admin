@@ -1,5 +1,20 @@
+import CardIncome from "./components/CardIncome";
+import Editor from "./components/textEditorTool";
+import TotalRevenueChart from "./components/TotalRevenueChart";
+
 function AnalysisPage() {
-  return (<h1>AnalysisPage</h1>);
+  return (
+    <div>
+      <div className="flex flex-row gap-8">
+        <CardIncome />
+        <CardIncome />
+        <CardIncome />
+        <CardIncome />
+      </div>
+      <TotalRevenueChart />
+      <Editor />
+    </div>
+  );
 }
 
 export default AnalysisPage;
