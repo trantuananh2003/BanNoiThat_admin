@@ -28,7 +28,7 @@ const TotalRevenueChart: React.FC = () => {
     datasets: [
       {
         label: "Total Revenue",
-        data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16],
         fill: false,
         borderColor: "rgba(75,192,192,1)",
         tension: 0.3,

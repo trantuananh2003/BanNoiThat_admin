@@ -1,4 +1,5 @@
 import CardIncome from "./components/CardIncome";
+import ProductCard from "./components/ProductCard";
 import Editor from "./components/textEditorTool";
 import TotalRevenueChart from "./components/TotalRevenueChart";
 
@@ -13,6 +14,7 @@ function AnalysisPage() {
       </div>
       <TotalRevenueChart />
       <Editor />
+      <ProductCard />
     </div>
   );
 }

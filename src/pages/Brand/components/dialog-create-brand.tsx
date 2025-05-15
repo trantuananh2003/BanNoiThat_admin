@@ -5,16 +5,31 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import clientAPI from "client-api/rest-client";
 import * as React from "react";
+import { useEffect, useState } from "react";
 
 interface DialogCreateBrandProps {
   openDialogCreateBrand: boolean;
   onClose: () => void;
 }
-export default function DialogCreateBrand({
-  openDialogCreateBrand, onClose
-}: DialogCreateBrandProps) {
 
+export default function DialogCreateBrand({
+  openDialogCreateBrand,
+  onClose,
+}: DialogCreateBrandProps) {
+  const [brandName, setBrandName] = useState("");
+  const [slug, setSlug] = useState("");
+  const handleSaveNewBrand = async () => {
+    const formData = new FormData();
+    formData.append('Name', brandName);
+    formData.append('Slug', slug);
+    try {
+      await clientAPI.service('Brands').create(formData);
+    } catch (error) {
+      console.error('Error saving new brand:', error);
+    }
+  }
   return (
     <React.Fragment>
       <Dialog
@@ -45,6 +60,8 @@ export default function DialogCreateBrand({
             type="text"
             fullWidth
             variant="standard"
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
           />
           <TextField
             required
@@ -55,11 +72,13 @@ export default function DialogCreateBrand({
             type="text"
             fullWidth
             variant="standard"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit" onClick={handleSaveNewBrand}>Save</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
