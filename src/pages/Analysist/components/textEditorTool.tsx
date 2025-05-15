@@ -1,14 +1,14 @@
-import React from 'react'
+import React from "react";
 import {
   EditorProvider,
   useCurrentEditor,
   FloatingMenu,
   BubbleMenu,
-} from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
-import Color from '@tiptap/extension-color'
-import ListItem from '@tiptap/extension-list-item'
+} from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import ListItem from "@tiptap/extension-list-item";
 
 // Extensions cấu hình
 const extensions = [
@@ -25,47 +25,47 @@ const extensions = [
   TextStyle,
   Color,
   ListItem,
-]
+];
 
 // Toolbar Component
 const MenuBar = () => {
-  const { editor } = useCurrentEditor()
+  const { editor } = useCurrentEditor();
 
-  if (!editor) return null
+  if (!editor) return null;
 
   const buttonStyle = (isActive: any) =>
     `flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-150
-    ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'}`
+    ${isActive ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"}`;
 
   return (
     <div className="flex flex-wrap gap-3 mb-4">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={buttonStyle(editor.isActive('bold'))}
+        className={buttonStyle(editor.isActive("bold"))}
       >
         <span>🔠</span> <span>Bold</span>
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={buttonStyle(editor.isActive('italic'))}
+        className={buttonStyle(editor.isActive("italic"))}
       >
         <span>👁️‍🗨️</span> <span>Italic</span>
       </button>
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={buttonStyle(editor.isActive('bulletList'))}
+        className={buttonStyle(editor.isActive("bulletList"))}
       >
         <span>•</span> <span>Bullet</span>
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={buttonStyle(editor.isActive('orderedList'))}
+        className={buttonStyle(editor.isActive("orderedList"))}
       >
         <span>1.</span> <span>Ordered</span>
       </button>
     </div>
-  )
-}
+  );
+};
 
 // Initial content
 const content = `
@@ -97,7 +97,7 @@ const content = `
   <br />
   — Mom
 </blockquote>
-`
+`;
 
 // Main Editor Component
 export default function Editor() {
@@ -111,5 +111,5 @@ export default function Editor() {
         <div className="border rounded-lg p-4 min-h-[150px] tiptap prose max-w-none focus:outline-none" />
       </EditorProvider>
     </div>
-  )
+  );
 }

@@ -29,7 +29,7 @@ interface Product {
     brandId: string;
     description: string;
     isDeleted: boolean;
-    category?: Category; // Thêm category vào đây
+    category?: Category;
     brand?: Brand;
 }
 
@@ -160,8 +160,6 @@ const TableProduct: React.FC = () => {
             setCurrentStatusProduct(false);
         }
     };
-
-    console.log(data);
 
     const columns = [
         {

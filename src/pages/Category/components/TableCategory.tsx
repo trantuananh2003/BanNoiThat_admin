@@ -130,34 +130,34 @@ const TableCategory: React.FC = () => {
             dataIndex: 'actions',
             key: 'actions',
             render: (text: any, record: any) => (
-                    <div>
-                        {editId === record.id ? (
-                            <Button
-                                className="mr-2"
-                                type="primary"
-                                icon={<SaveOutlined />}
-                                onClick={() => handleSave(record.id)}
-                            >
-                                
-                            </Button>
-                        ) : (
-                            <Button
-                                className="mr-2"
-                                type="primary"
-                                icon={<EditOutlined />}
-                                onClick={() => handleEdit(record.id, record.name, record.categoriesUrlImage, record.parent_Id)}
-                            >
-                            </Button>
-                        )}
+                <div>
+                    {editId === record.id ? (
                         <Button
+                            className="mr-2"
                             type="primary"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleDelete(record.id)}
+                            icon={<SaveOutlined />}
+                            onClick={() => handleSave(record.id)}
+                        >
+                            
+                        </Button>
+                    ) : (
+                        <Button
+                            className="mr-2"
+                            type="primary"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEdit(record.id, record.name, record.categoriesUrlImage, record.parent_Id)}
                         >
                         </Button>
-                    </div>
-                        ),
+                    )}
+                    <Button
+                        type="primary"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDelete(record.id)}
+                    >
+                    </Button>
+                </div>
+                    ),
         },
     ];
 
