@@ -84,6 +84,21 @@ interface Product {
   brand?: Brand;
 }
 
+interface PaginationDto {
+  CurrentPage: number;
+  PageSize: number;
+  TotalRecords: number;
+}
+
+type ProductResponse = {
+  data: {
+    result: Product[];
+    isSuccess: boolean;
+    errorMessages: string[];
+  };
+  pagination: PaginationDto;
+};
+
 export default function TableProductExample() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -96,21 +111,26 @@ export default function TableProductExample() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isEditProductItemModalVisible, setIsEditProductItemsModalVisible] = useState(false);
+  const [isEditProductItemModalVisible, setIsEditProductItemsModalVisible] =
+    useState(false);
+  const [count, setCount] = useState<number>(0);
 
+  const [openDialog, setOpenDialog] = useState(false);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response: { result: Product[] } = await clientAPI
-          .service("Products")
-          .find(
-            `PageSize=${rowsPerPage}&PageCurrent=${page}&IsDeleted=${currentStatusProduct}`
+        const response: ProductResponse = await clientAPI
+          .service("products")
+          .findPagedList(
+            `pageSize=${rowsPerPage}&pageCurrent=${page + 1}&IsDeleted=${currentStatusProduct}`
           );
-        setData(response.result);
+        setData(response.data.result);
+        setCount(response.pagination.TotalRecords);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     };
+
     const fetchCategories = async () => {
       const responseDataCategories = await clientAPI
         .service("Categories/admin")
@@ -125,6 +145,7 @@ export default function TableProductExample() {
       );
       setCategories(childrenCategories);
     };
+
     const fetchBrands = async () => {
       const responseDataBrands = await clientAPI.service("Brands").find();
       const brands = (responseDataBrands as { result: Brand[] }).result;
@@ -135,13 +156,13 @@ export default function TableProductExample() {
     fetchProducts();
   }, [page, rowsPerPage, currentStatusProduct]);
 
-  const filteredData = data.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === "all" || product.slug === filter;
-    return matchesSearch && matchesFilter;
-  });
+  // const filteredData = data.filter((product) => {
+  //   const matchesSearch = product.name
+  //     .toLowerCase()
+  //     .includes(searchTerm.toLowerCase());
+  //   const matchesFilter = filter === "all" || product.slug === filter;
+  //   return matchesSearch && matchesFilter;
+  // });
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -163,9 +184,9 @@ export default function TableProductExample() {
   };
 
   const handleEditProductItem = (id: string) => {
-        setEditId(id);
-        setIsEditProductItemsModalVisible(true);
-    };
+    setEditId(id);
+    setIsEditProductItemsModalVisible(true);
+  };
 
   return (
     <Paper
@@ -250,70 +271,68 @@ export default function TableProductExample() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => (
-                <TableRow hover key={row.id}>
-                  {columns.map((column) => {
-                    const value = getNestedValue(row, column.id);
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.id === "thumbnailUrl" ? (
-                          <img
-                            src={value}
-                            alt="Thumbnail"
-                            style={{
-                              width: 60,
-                              height: 60,
-                              cursor: "pointer",
-                              borderRadius: 4,
-                            }}
-                            onClick={() => setSelectedImage(value)}
-                          />
-                        ) : (
-                          value
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      {editId === row.id ? (
-                        <Tooltip title="Save" placement="top">
-                          <IconButton color="success" size="small">
-                            <SaveIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+            {data.map((row) => (
+              <TableRow hover key={row.id}>
+                {columns.map((column) => {
+                  const value = getNestedValue(row, column.id);
+                  return (
+                    <TableCell key={column.id} align={column.align}>
+                      {column.id === "thumbnailUrl" ? (
+                        <img
+                          src={value}
+                          alt="Thumbnail"
+                          style={{
+                            width: 60,
+                            height: 60,
+                            cursor: "pointer",
+                            borderRadius: 4,
+                          }}
+                          onClick={() => setSelectedImage(value)}
+                        />
                       ) : (
-                        <Tooltip title="Edit" placement="top">
-                          <IconButton
-                            color="primary"
-                            size="small"
-                            onClick={() => handleEditProductItem(row.id)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        value
                       )}
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        startIcon={<Build fontSize="small" />}
-                        sx={{ borderRadius: 5, textTransform: "none" }}
-                        onClick={() => handleEdit(row.id)}
-                      >
-                        Phân loại
-                      </Button>
-                      <Tooltip title="Delete" placement="top">
-                        <IconButton color="error" size="small">
-                          <DeleteIcon fontSize="small" />
+                    </TableCell>
+                  );
+                })}
+                <TableCell>
+                  <Stack direction="row" spacing={1}>
+                    {editId === row.id ? (
+                      <Tooltip title="Save" placement="top">
+                        <IconButton color="success" size="small">
+                          <SaveIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    ) : (
+                      <Tooltip title="Edit" placement="top">
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          onClick={() => setOpenDialog(true)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="secondary"
+                      startIcon={<Build fontSize="small" />}
+                      sx={{ borderRadius: 5, textTransform: "none" }}
+                      onClick={() => handleEdit(row.id)}
+                    >
+                      Phân loại
+                    </Button>
+                    <Tooltip title="Delete" placement="top">
+                      <IconButton color="error" size="small">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -321,7 +340,7 @@ export default function TableProductExample() {
       <TablePagination
         rowsPerPageOptions={[10, 25, 50]}
         component="div"
-        count={filteredData.length}
+        count={count}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -358,13 +377,11 @@ export default function TableProductExample() {
           />
         </Box>
       )}
-      {isEditProductItemModalVisible && (
-        <EditProductItemExample
-          productId={editId}
-          setEditProduct={setIsEditProductItemsModalVisible}
-        />
-      )}
-
+      <EditProductItemExample
+        productId={editId}
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      />
     </Paper>
   );
 }

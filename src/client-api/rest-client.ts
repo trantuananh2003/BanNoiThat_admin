@@ -1,5 +1,11 @@
 import axios, { AxiosInstance } from "axios";
 
+interface PaginationDto {
+  CurrentPage: number;
+  PageSize: number;
+  TotalRecords: number;
+}
+
 class RestClient {
   private axiosInstance: AxiosInstance;
   private path: string = "";
@@ -151,6 +157,25 @@ class RestClient {
         },
       });
       return response.data;
+    } catch (error: any) {
+      if (!error.response) {
+        console.error("Network error", error);
+        throw new Error("Network error");
+      }
+      console.error("Error finding data", error);
+      throw error;
+    }
+  }
+
+  async findPagedList<T>(
+    query: string = ""
+  ): Promise<{ data: T; pagination: PaginationDto }> {
+    let paginationDto: PaginationDto;
+    try {
+      const url = query ? `/${this.path}?${query}` : `/${this.path}`;
+      const response = await this.axiosInstance.get<T>(url);
+      paginationDto = JSON.parse(response.headers["x-pagination"]);
+      return { data: response.data, pagination: paginationDto };
     } catch (error: any) {
       if (!error.response) {
         console.error("Network error", error);

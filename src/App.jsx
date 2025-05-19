@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { setUser } from "./redux/features/userSlice";
-import OrderPage from "./pages/Order";
+import OrderPage from "./pages/Order/Order";
 import User from "./pages/User/User";
 import AnalysisPage from "./pages/Analysist";
 

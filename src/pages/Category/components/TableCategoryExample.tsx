@@ -29,9 +29,11 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
 } from "@mui/icons-material";
 import clientAPI from "client-api/rest-client";
+import DialogCreateCategory from "./dialog-create-category";
+import DialogEditCategory from "./dialog-edit-category";
 
 interface Column {
-  id: "id" | "name" | "categoryUrlImage"; //| "parent_Id";
+  id: "id" | "name" | "categoryUrlImage" | "slug"; //| "parent_Id";
   label: string;
   minWidth?: number;
   align?: "right";
@@ -42,6 +44,7 @@ const columns: readonly Column[] = [
   { id: "id", label: "ID", minWidth: 100 },
   { id: "name", label: "Category Name", minWidth: 170 },
   { id: "categoryUrlImage", label: "Category Image", minWidth: 170 },
+  { id: "slug", label: "Slug", minWidth: 170 },
   //{ id: "parent_Id", label: "Parent ID", minWidth: 100 },
 ];
 
@@ -50,13 +53,31 @@ interface Category {
   name: string;
   categoryUrlImage: string | null;
   parent_Id: string | null;
+  slug: string;
   children: Category[];
 }
 
-function Row({ row }: { row: Category }) {
+function Row({
+  row,
+  setRefresh,
+}: {
+  row: Category;
+  setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [open, setOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [openDialogCreateCategory, setOpenDialogCreateCategory] =
+    React.useState(false);
+  const handleClickOpenDialogCreateCategory = () => {
+    setOpenDialogCreateCategory(true);
+  };
+  const [editId, setEditId] = useState("");
 
+  const [openDialogEditCategory, setOpenDialogEditCategory] = useState(false);
+  const handleClickOpenDialogEditCategory = (id: string) => {
+    setEditId(id);
+    setOpenDialogEditCategory(true);
+  };
   return (
     <>
       {selectedImage && (
@@ -89,7 +110,7 @@ function Row({ row }: { row: Category }) {
       )}
       <TableRow hover>
         <TableCell>
-          {row.children.length > 0 && (
+          {row.children.length >= 0 && (
             <IconButton size="small" onClick={() => setOpen(!open)}>
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
@@ -115,13 +136,24 @@ function Row({ row }: { row: Category }) {
           )}
         </TableCell>
         {/* <TableCell>{row.parent_Id}</TableCell> */}
+        <TableCell>{row.slug}</TableCell>
         <TableCell>
           <Stack direction="row" spacing={1}>
             <Tooltip title="Edit">
-              <IconButton color="primary" size="small">
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={() => handleClickOpenDialogEditCategory(row.id)}
+              >
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
+            <DialogEditCategory
+              id={editId}
+              openDialogEditCategory={openDialogEditCategory}
+              onClose={() => setOpenDialogEditCategory(false)}
+              setRefresh={setRefresh}
+            />
             <Tooltip title="Delete">
               <IconButton color="error" size="small">
                 <DeleteIcon fontSize="small" />
@@ -131,9 +163,12 @@ function Row({ row }: { row: Category }) {
         </TableCell>
       </TableRow>
 
-      {row.children.length > 0 && (
+      {row.children.length >= 0 && (
         <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <TableCell
+            style={{ paddingLeft: 50, paddingBottom: 0, paddingTop: 0 }}
+            colSpan={6}
+          >
             <Collapse in={open} timeout="auto" unmountOnExit>
               <Box margin={1}>
                 <Typography variant="subtitle1" gutterBottom>
@@ -146,7 +181,20 @@ function Row({ row }: { row: Category }) {
                       <TableCell>Name</TableCell>
                       <TableCell>Image</TableCell>
                       <TableCell>Parent ID</TableCell>
-                      <TableCell></TableCell>
+                      <TableCell>Slug</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleClickOpenDialogCreateCategory()}
+                        >
+                          CREATE NEW SUBCATEGORY
+                        </Button>
+                        <DialogCreateCategory
+                          Parent_Id={row.id}
+                          openDialogCreateCategory={openDialogCreateCategory}
+                          onClose={() => setOpenDialogCreateCategory(false)}
+                          setRefresh={setRefresh}
+                        />
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -174,10 +222,11 @@ function Row({ row }: { row: Category }) {
                           )}
                         </TableCell>
                         <TableCell>{child.parent_Id}</TableCell>
+                        <TableCell>{child.slug}</TableCell>
                         <TableCell>
                           <Stack direction="row" spacing={1}>
                             <Tooltip title="Edit">
-                              <IconButton color="primary" size="small">
+                              <IconButton color="primary" size="small" onClick={() => handleClickOpenDialogEditCategory(child.id)}>
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -207,6 +256,13 @@ export default function TableCategoryWithCollapse() {
   const [data, setData] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [openDialogCreateCategory, setOpenDialogCreateCategory] =
+    React.useState(false);
+
+  const handleClickOpenDialogCreateCategory = () => {
+    setOpenDialogCreateCategory(true);
+  };
+  const [refresh, setRefresh] = useState(false);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -228,7 +284,7 @@ export default function TableCategoryWithCollapse() {
       }
     };
     fetchCategories();
-  }, []);
+  }, [refresh]);
 
   const filteredData = data.filter((category) =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -252,6 +308,15 @@ export default function TableCategoryWithCollapse() {
               </InputAdornment>
             ),
           }}
+        />
+        <Button onClick={() => handleClickOpenDialogCreateCategory()}>
+          CREATE NEW CATEGORY
+        </Button>
+        <DialogCreateCategory
+          Parent_Id=""
+          openDialogCreateCategory={openDialogCreateCategory}
+          onClose={() => setOpenDialogCreateCategory(false)}
+          setRefresh={setRefresh}
         />
       </Toolbar>
 
@@ -282,7 +347,7 @@ export default function TableCategoryWithCollapse() {
             {filteredData
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row) => (
-                <Row key={row.id} row={row} />
+                <Row key={row.id} row={row} setRefresh={setRefresh} />
               ))}
           </TableBody>
         </Table>

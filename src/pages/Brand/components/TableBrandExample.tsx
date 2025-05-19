@@ -27,6 +27,7 @@ import clientAPI from "client-api/rest-client";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import DialogCreateBrand from "./dialog-create-brand";
+import DialogEditBrand from "./dialog-edit-brand";
 
 interface Column {
   id: "name" | "slug";
@@ -51,14 +52,21 @@ export default function TableBrandExample() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState<Brand[]>([]);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [openDialogCreateBrand, setOpenDialogCreateBrand] =
     React.useState(false);
-
+  const [refresh, setRefresh] = useState(false);
   const handleClickOpenDialogCreateBrand = () => {
     setOpenDialogCreateBrand(true);
+  };
+
+  const [openDialogEditBrand, setOpenDialogEditBrand] = React.useState(false);
+
+  const handleClickOpenDialogEditBrand = (id: string) => {
+    setEditId(id);
+    setOpenDialogEditBrand(true);
   };
 
   useEffect(() => {
@@ -73,7 +81,7 @@ export default function TableBrandExample() {
       }
     };
     fetchBrands();
-  }, [editId]);
+  }, [refresh]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -131,7 +139,7 @@ export default function TableBrandExample() {
               ),
             }}
           />
-          <FormControl size="small">
+          {/* <FormControl size="small">
             <InputLabel>Slug</InputLabel>
             <Select
               value={filter}
@@ -148,7 +156,7 @@ export default function TableBrandExample() {
                 )
               )}
             </Select>
-          </FormControl>
+          </FormControl> */}
         </Stack>
         <Button onClick={() => handleClickOpenDialogCreateBrand()}>
           CREATE NEW BRAND
@@ -156,6 +164,7 @@ export default function TableBrandExample() {
         <DialogCreateBrand
           openDialogCreateBrand={openDialogCreateBrand}
           onClose={() => setOpenDialogCreateBrand(false)}
+          setRefresh={setRefresh}
         />
       </Toolbar>
 
@@ -212,34 +221,19 @@ export default function TableBrandExample() {
                   })}
                   <TableCell>
                     <Stack direction="row" spacing={1}>
-                      {editId === row.id ? (
-                        <Tooltip title="Save" placement="top">
-                          <IconButton
-                            color="success"
-                            size="small"
-                            sx={{
-                              bgcolor: "",
-                              "&:hover": { bgcolor: "success.light" },
-                            }}
-                          >
-                            <SaveIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="Edit" placement="top">
-                          <IconButton
-                            color="primary"
-                            size="small"
-                            sx={{
-                              bgcolor: "",
-                              "&:hover": { bgcolor: "primary.light" },
-                            }}
-                            onClick={() => handleEdit(row.id)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      <Tooltip title="Edit" placement="top">
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          sx={{
+                            bgcolor: "",
+                            "&:hover": { bgcolor: "primary.light" },
+                          }}
+                          onClick={() => handleClickOpenDialogEditBrand(row.id)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Delete" placement="top">
                         <IconButton
                           color="error"
@@ -272,6 +266,12 @@ export default function TableBrandExample() {
           backgroundColor: "#f9f9f9",
           borderTop: "1px solid #e0e0e0",
         }}
+      />
+      <DialogEditBrand
+        id={editId}
+        openDialogEditBrand={openDialogEditBrand}
+        onClose={() => setOpenDialogEditBrand(false)}
+        setRefresh={setRefresh}
       />
     </Paper>
   );

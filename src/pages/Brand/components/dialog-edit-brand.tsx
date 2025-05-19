@@ -10,25 +10,47 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { string_to_slug } from "utils/commonFunctions";
 
-interface DialogCreateBrandProps {
-  openDialogCreateBrand: boolean;
+interface DialogEditBrandProps {
+  id: string;
+  openDialogEditBrand: boolean;
   onClose: () => void;
   setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function DialogCreateBrand({
-  openDialogCreateBrand,
+interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export default function DialogEditBrand({
+  id,
+  openDialogEditBrand,
   onClose,
   setRefresh,
-}: DialogCreateBrandProps) {
+}: DialogEditBrandProps) {
   const [brandName, setBrandName] = useState("");
   const [slug, setSlug] = useState("");
-  const handleSaveNewBrand = async () => {
+  useEffect(() => {
+    const getBrand = async () => {
+      try {
+        const response: { result: Brand } = await clientAPI
+          .service("brands")
+          .get(id);
+        setBrandName(response?.result?.name);
+        setSlug(response?.result?.slug);
+      } catch (error) {
+        console.log("Error getting this brand: ", error);
+      }
+    };
+    getBrand();
+  }, [id]);
+  const handleSaveBrand = async () => {
     const formData = new FormData();
     formData.append("Name", brandName);
     formData.append("Slug", slug);
     try {
-      await clientAPI.service("Brands").create(formData);
+      await clientAPI.service("Brands").put(id, formData);
     } catch (error) {
       console.error("Error saving new brand:", error);
     }
@@ -36,13 +58,10 @@ export default function DialogCreateBrand({
     setSlug("");
     setRefresh((prev) => !prev);
   };
-  const handleOnChangeBrandName = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {};
   return (
     <React.Fragment>
       <Dialog
-        open={openDialogCreateBrand}
+        open={openDialogEditBrand}
         onClose={onClose}
         slotProps={{
           paper: {
@@ -57,7 +76,7 @@ export default function DialogCreateBrand({
           },
         }}
       >
-        <DialogTitle>Create new brand</DialogTitle>
+        <DialogTitle>Edit brand</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -90,7 +109,7 @@ export default function DialogCreateBrand({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" onClick={handleSaveNewBrand}>
+          <Button type="submit" onClick={handleSaveBrand}>
             Save
           </Button>
         </DialogActions>
