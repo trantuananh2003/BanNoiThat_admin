@@ -5,17 +5,31 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import clientAPI from "client-api/rest-client";
 import * as React from "react";
 
-
 interface DialogConfirmOrderProps {
+  orderId: string;
   openDialogConfirmOrder: boolean;
   onClose: () => void;
 }
 export default function DialogConfirmOrder({
-  openDialogConfirmOrder, onClose
+  orderId,
+  openDialogConfirmOrder,
+  onClose,
 }: DialogConfirmOrderProps) {
-
+  const [addressCode, setAddressCode] = React.useState("");
+  const [transferService, setTransferService] = React.useState("");
+  const handleConfirmOrder = async () => {
+    const formData = new FormData();
+    formData.append('AddressCode', addressCode);
+    formData.append('TransferService', transferService);
+    try {
+      await clientAPI.service('Orders').put(`${orderId}/approve`, formData);
+    } catch (error) {
+      console.error('Error saving confirm order:', error);
+    }
+  }
   return (
     <React.Fragment>
       <Dialog
@@ -42,15 +56,29 @@ export default function DialogConfirmOrder({
             margin="dense"
             id="AddressCode"
             name="AddressCode"
-            label="AddressCode"
+            label="Address Code"
             type="text"
             fullWidth
             variant="standard"
+            value={addressCode}
+            onChange={(e) => setAddressCode(e.target.value)}
+          />
+          <TextField
+            required
+            margin="dense"
+            id="transferService"
+            name="transferService"
+            label="Transfer Service"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={transferService}
+            onChange={(e) => setTransferService(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit" onClick={handleConfirmOrder}>Save</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
