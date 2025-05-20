@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { string_to_slug } from "utils/commonFunctions";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import EditorDescription from "./textEditorTool";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -31,45 +33,90 @@ interface DialogEditProductInfoProps {
   setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  children: Category[];
+}
+
 interface Product {
   id: string;
   name: string;
   slug: string;
-  categoryUrlImage: string;
+  thumbnailUrl: string;
+  description: string;
+  brand: Brand;
+  category: Category;
 }
 
-export default function DialogEditCategory({
+export default function DialogEditProductInfo({
   id,
   openDialogEditProductInfo,
   onClose,
   setRefresh,
 }: DialogEditProductInfoProps) {
-  const [categoryName, setCategoryName] = useState("");
-  const [categoryImage, setCategoryImage] = useState<File>();
+  const [productName, setProductName] = useState("");
   const [slug, setSlug] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState<File>();
+  const [description, setDescription] = useState("");
+  const [brand, setBrand] = useState<Brand>();
+  const [category, setCategory] = useState<Category>();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [initialCategory, setInitialCategory] = useState<Product | null>(null);
+  const [initialProduct, setInitialProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
 
   useEffect(() => {
-    const getCategory = async () => {
+    const getProduct = async () => {
       try {
         const response: { result: Product } = await clientAPI
-          .service("categories")
+          .service("products")
           .get(id);
-        setCategoryName(response.result.name);
+        setProductName(response.result.name);
         setSlug(response.result.slug);
-        setPreviewImage(response.result.categoryUrlImage);
-        setInitialCategory(response.result);
+        setPreviewImage(response.result.thumbnailUrl);
+        setDescription(response.result.description);
+        setBrand(response.result.brand);
+        setCategory(response.result.category);
+        setInitialProduct(response.result);
       } catch (error) {
-        console.log("Error getting this category: ", error);
+        console.log("Error getting this product: ", error);
       }
     };
 
+    const fetchCategories = async () => {
+      const responseDataCategories = await clientAPI
+        .service("Categories/admin")
+        .find();
+      const categories = (responseDataCategories as { result: Category[] })
+        .result;
+      const childrenFilter = categories.filter(
+        (category) => category.children && category.children.length > 0
+      );
+      const childrenCategories = childrenFilter.flatMap(
+        (category) => category.children
+      );
+      setCategories(childrenCategories);
+    };
+    const fetchBrands = async () => {
+      const responseDataBrands = await clientAPI.service("Brands").find();
+      const brands = (responseDataBrands as { result: Brand[] }).result;
+      setBrands(brands);
+    };
+
     if (id) {
-      getCategory();
+      getProduct();
+      fetchCategories();
+      fetchBrands();
     }
 
-    // Cleanup nếu dùng blob image từ upload
     return () => {
       if (previewImage?.startsWith("blob:")) {
         URL.revokeObjectURL(previewImage);
@@ -77,30 +124,24 @@ export default function DialogEditCategory({
     };
   }, [id]);
 
-  const handleSaveCategory = async () => {
-    const hasChanges =
-      categoryName !== initialCategory?.name ||
-      slug !== initialCategory?.slug ||
-      categoryImage;
-
-    if (!hasChanges) {
-      onClose();
-      return;
-    }
+  const handleSaveProduct = async () => {
 
     const formData = new FormData();
-    formData.append("Name", categoryName);
+    formData.append("Name", productName);
     formData.append("Slug", slug);
-    if (categoryImage) {
-      formData.append("FileImage", categoryImage);
+    if (thumbnailUrl) {
+      formData.append("Image", thumbnailUrl);
     }
+    formData.append("Category_Id", category?.id || "");
+    formData.append("Brand_Id", brand?.id || "");
+    formData.append("Description", description);
 
     try {
-      await clientAPI.service("Categories").put(id, formData);
+      await clientAPI.service("products").put(id, formData);
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
-      console.error("Error saving new category:", error);
+      console.error("Error saving new product:", error);
     }
   };
 
@@ -114,26 +155,26 @@ export default function DialogEditCategory({
             component: "form",
             onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
               event.preventDefault();
-              handleSaveCategory();
+              handleSaveProduct();
             },
           },
         }}
       >
-        <DialogTitle>Edit category</DialogTitle>
+        <DialogTitle>Edit product</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             required
             margin="dense"
-            id="categoryName"
-            name="categoryName"
-            label="Category Name"
+            id="productName"
+            name="productName"
+            label="Product Name"
             type="text"
             fullWidth
             variant="standard"
-            value={categoryName}
+            value={productName}
             onChange={(e) => {
-              setCategoryName(e.target.value);
+              setProductName(e.target.value);
               setSlug(string_to_slug(e.target.value));
             }}
           />
@@ -154,7 +195,7 @@ export default function DialogEditCategory({
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (file) {
-                    setCategoryImage(file);
+                    setThumbnailUrl(file);
                     const objectUrl = URL.createObjectURL(file);
                     setPreviewImage(objectUrl);
                   }
@@ -190,6 +231,50 @@ export default function DialogEditCategory({
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
           />
+          <FormControl fullWidth sx={{ m: 1, minWidth: 120 }} size="small">
+            <InputLabel id="demo-select-small-label">Brand</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              label="Brand"
+              value={brand?.id || ""}
+              onChange={(e) => {
+                const selected = brands.find((b) => b.id === e.target.value);
+                if (selected) setBrand(selected);
+              }}
+            >
+              {brands.map((brand) => (
+                <MenuItem key={brand.id} value={brand.id}>
+                  {brand.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth sx={{ m: 1, minWidth: 120 }} size="small">
+            <InputLabel id="demo-select-small-label">Category</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              label="Category"
+              value={category?.id || ""}
+              onChange={(e) => {
+                const selected = categories.find(
+                  (c) => c.id === e.target.value
+                );
+                if (selected) setCategory(selected);
+              }}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <EditorDescription
+            description={description}
+            onChange={(html) => setDescription(html)}
+          ></EditorDescription>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

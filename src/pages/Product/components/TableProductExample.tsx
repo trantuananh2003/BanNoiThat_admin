@@ -1,5 +1,4 @@
-import clientAPI from "client-api/rest-client";
-import { useEffect, useState } from "react";
+import { Build } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -26,8 +25,9 @@ import {
   Toolbar,
   Tooltip,
 } from "@mui/material";
-import { Build } from "@mui/icons-material";
-import EditProductItemExample from "./EditProductItemExample";
+import clientAPI from "client-api/rest-client";
+import { useEffect, useState } from "react";
+import DialogEditProductInfo from "./dialog-edit-product-info";
 
 interface Column {
   id:
@@ -103,19 +103,21 @@ export default function TableProductExample() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState<Product[]>([]);
-  const [editId, setEditId] = useState<string | null>(null);
   const [currentStatusProduct, setCurrentStatusProduct] =
     useState<Boolean>(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isEditProductItemModalVisible, setIsEditProductItemsModalVisible] =
-    useState(false);
+
+  const [refresh, setRefresh] = useState(false);
+  const [editId, setEditId] = useState<string>("");
+  const [openDialogEditProduct, setOpenDialogEditProduct] = useState(false);
+  const handleClickOpenDialogEditProduct = (id: string) => {
+    setEditId(id);
+    setOpenDialogEditProduct(true);
+  };
   const [count, setCount] = useState<number>(0);
 
-  const [openDialog, setOpenDialog] = useState(false);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -130,31 +132,9 @@ export default function TableProductExample() {
         console.error("Error fetching products:", error);
       }
     };
-
-    const fetchCategories = async () => {
-      const responseDataCategories = await clientAPI
-        .service("Categories/admin")
-        .find();
-      const categories = (responseDataCategories as { result: Category[] })
-        .result;
-      const childrenFilter = categories.filter(
-        (category) => category.children && category.children.length > 0
-      );
-      const childrenCategories = childrenFilter.flatMap(
-        (category) => category.children
-      );
-      setCategories(childrenCategories);
-    };
-
-    const fetchBrands = async () => {
-      const responseDataBrands = await clientAPI.service("Brands").find();
-      const brands = (responseDataBrands as { result: Brand[] }).result;
-      setBrands(brands);
-    };
-    fetchCategories();
-    fetchBrands();
+    
     fetchProducts();
-  }, [page, rowsPerPage, currentStatusProduct]);
+  }, [page, rowsPerPage, currentStatusProduct, refresh]);
 
   // const filteredData = data.filter((product) => {
   //   const matchesSearch = product.name
@@ -181,11 +161,6 @@ export default function TableProductExample() {
 
   const getNestedValue = (obj: any, path: string): any => {
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
-  };
-
-  const handleEditProductItem = (id: string) => {
-    setEditId(id);
-    setIsEditProductItemsModalVisible(true);
   };
 
   return (
@@ -296,24 +271,18 @@ export default function TableProductExample() {
                   );
                 })}
                 <TableCell>
-                  <Stack direction="row" spacing={1}>
-                    {editId === row.id ? (
-                      <Tooltip title="Save" placement="top">
-                        <IconButton color="success" size="small">
-                          <SaveIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    ) : (
+                  <Stack direction="row" spacing={1}> 
                       <Tooltip title="Edit" placement="top">
                         <IconButton
                           color="primary"
                           size="small"
-                          onClick={() => setOpenDialog(true)}
+                          onClick={() =>
+                            handleClickOpenDialogEditProduct(row.id)
+                          }
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    )}
                     <Button
                       variant="outlined"
                       size="small"
@@ -377,10 +346,11 @@ export default function TableProductExample() {
           />
         </Box>
       )}
-      <EditProductItemExample
-        productId={editId}
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
+      <DialogEditProductInfo
+        id={editId}
+        openDialogEditProductInfo={openDialogEditProduct}
+        onClose={() => setOpenDialogEditProduct(false)}
+        setRefresh={setRefresh}
       />
     </Paper>
   );
