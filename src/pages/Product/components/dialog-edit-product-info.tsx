@@ -12,7 +12,7 @@ import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { string_to_slug } from "utils/commonFunctions";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import EditorDescription from "./textEditorTool";
+import EditorDescription from "./dialog-editor-tool";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -69,7 +69,6 @@ export default function DialogEditProductInfo({
   const [brand, setBrand] = useState<Brand>();
   const [category, setCategory] = useState<Category>();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [initialProduct, setInitialProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
@@ -85,7 +84,6 @@ export default function DialogEditProductInfo({
         setDescription(response.result.description);
         setBrand(response.result.brand);
         setCategory(response.result.category);
-        setInitialProduct(response.result);
       } catch (error) {
         console.log("Error getting this product: ", error);
       }

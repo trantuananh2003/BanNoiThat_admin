@@ -1,5 +1,5 @@
 import React from 'react';
-import TableBrandExample from './components/TableBrandExample';
+import TableBrandExample from './components/table-brand';
 
 const Brand: React.FC = () => {
     return (

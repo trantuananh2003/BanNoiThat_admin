@@ -2,7 +2,20 @@ import * as React from 'react';
 import { Card, CardContent, Typography, Box, Avatar } from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
-const CardIncome: React.FC = () => {
+interface CardIncomeAnalysistProps {
+  revenueLastWeek: number;
+  revenueCurrentWeek: number;
+}
+
+export default function CardIncomeAnalysist({
+  revenueLastWeek,
+  revenueCurrentWeek
+}: CardIncomeAnalysistProps) {
+  const diff = revenueCurrentWeek - revenueLastWeek;
+  const percentChange =
+    revenueLastWeek === 0 ? 100 : Math.round((diff / revenueLastWeek) * 100);
+  const isIncrease = diff >= 0;
+
   return (
     <Card sx={{ minWidth: 275, boxShadow: 2, borderRadius: 3 }}>
       <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -12,14 +25,22 @@ const CardIncome: React.FC = () => {
             Income
           </Typography>
           <Typography variant="h4" fontWeight="bold">
-            $47.482
+            {"$"} {revenueCurrentWeek}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-            <Typography variant="body2" sx={{ color: 'green', fontWeight: 'bold', mr: 1 }}>
-              3.85%
+            <Typography
+              variant="body2"
+              sx={{
+                color: isIncrease ? 'green' : 'red',
+                fontWeight: 'bold',
+                mr: 1
+              }}
+            >
+              {isIncrease ? '+' : '-'}
+              {Math.abs(percentChange)}%
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Since last week
+              {isIncrease ? 'Increase' : 'Decrease'} since last week
             </Typography>
           </Box>
         </Box>
@@ -31,6 +52,4 @@ const CardIncome: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
-
-export default CardIncome;
+}
