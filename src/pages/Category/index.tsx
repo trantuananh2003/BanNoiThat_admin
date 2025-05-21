@@ -1,5 +1,5 @@
 import React from 'react';
-import TableCategoryExample from './components/TableCategoryExample';
+import TableCategoryExample from './components/table-category';
 
 
 const Category: React.FC = () => {

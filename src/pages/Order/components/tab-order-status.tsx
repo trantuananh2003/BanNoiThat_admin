@@ -76,7 +76,9 @@ const OrderPage = () => {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box
+      sx={{ width: "100%", overflow: "hidden", borderRadius: 3, boxShadow: 5 }}
+    >
       <Box sx={{ bgcolor: "#fff", borderRadius: 2, boxShadow: 2 }}>
         {/* Tabs */}
         <Tabs
@@ -198,7 +200,9 @@ const OrderPage = () => {
                       <Button
                         variant="contained"
                         color="success"
-                        onClick={() => handleClickOpenDialogConfirmOrder(order.id)}
+                        onClick={() =>
+                          handleClickOpenDialogConfirmOrder(order.id)
+                        }
                       >
                         Xác nhận
                       </Button>

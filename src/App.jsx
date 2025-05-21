@@ -1,16 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminLayout from "./layouts/AdminLayout";
-import Auth from "./pages/Auth/Auth";
-import Brand from "./pages/Brand/Brand";
-import Category from "./pages/Category/Category";
-import Product from "./pages/Product";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { setUser } from "./redux/features/userSlice";
-import OrderPage from "./pages/Order/Order";
-import User from "./pages/User/User";
-import AnalysisPage from "./pages/Analysist";
+import Brand from "pages/Brand";
+import Category from "pages/Category";
+import Product from "pages/Product";
+import Order from "pages/Order";
+import User from "pages/User";
+import Analysis from "pages/Analysis";
+import Auth from "pages/Auth";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -31,9 +31,9 @@ const App = () => {
           <Route path="brands" element={<Brand />} />
           <Route path="categories" element={<Category />} />
           <Route path="products" element={<Product />} />
-          <Route path="orders" element={<OrderPage />} />
+          <Route path="orders" element={<Order />} />
           <Route path="users" element={<User />} />
-          <Route path="analysis" element={<AnalysisPage />} />
+          <Route path="analysis" element={<Analysis />} />
         </Route>
       </Routes>
     </Router>

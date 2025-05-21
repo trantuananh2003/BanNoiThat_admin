@@ -27,19 +27,25 @@ interface ProductItem {
   isDelete?: boolean;
 }
 
-interface Props {
-  productId?: string | null;
-  open: boolean;
+interface DialogEditProductItemProps {
+  id: string;
+  openDialogEditProductItem: boolean;
   onClose: () => void;
+  setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) => {
+export default function DialogEditProductItem({
+  id,
+  openDialogEditProductItem,
+  onClose,
+  setRefresh,
+}: DialogEditProductItemProps) {
   const [productItems, setProductItems] = useState<ProductItem[]>([]);
 
-  const fetchProduct = async () => {
-    if (productId) {
+  useEffect(() => {
+    const fetchProductItems = async () => {
       try {
-        const response = await clientAPI.service("products").get(productId.toString());
+        const response = await clientAPI.service("products").get(id);
         const productData = response as {
           result: { productItems: ProductItem[] };
         };
@@ -49,15 +55,11 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
       } catch (error) {
         console.error("Error fetching product:", error);
       }
+    };
+    if (id) {
+      fetchProductItems();
     }
-  };
-
-  useEffect(() => {
-    if (open) {
-      fetchProduct();
-    }
-  }, [productId, open]);
-
+  }, [id, openDialogEditProductItem]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
@@ -73,33 +75,47 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
         item.isDelete ? item.isDelete.toString() : "false"
       );
       if (item.imageProductItem) {
-        formData.append(`items[${index}].imageProductItem`, item.imageProductItem);
+        formData.append(
+          `items[${index}].imageProductItem`,
+          item.imageProductItem
+        );
       }
     });
     try {
-      const response = await clientAPI.service("products").put(`${productId}/product-items`, formData);
-      console.log("Response:", response);
+      const response = await clientAPI
+        .service("products")
+        .put(`${id}/product-items`, formData);
+      setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
       console.error("Error submitting:", error);
     }
   };
 
-  const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setProductItems((prev) =>
       prev.map((item, i) =>
         i === index
           ? {
               ...item,
-              [name]: name.includes("price") || name === "quantity" ? Number(value) : value,
+              [name]:
+                name.includes("price") || name === "quantity"
+                  ? Number(value)
+                  : value,
             }
           : item
       )
     );
   };
 
-  const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -126,7 +142,7 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
       ...prev,
       {
         id: null,
-        quantity: 1,
+        quantity: 0,
         nameOption: "",
         price: 0,
         salePrice: 0,
@@ -145,12 +161,26 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-      <DialogTitle>
-        {productId ? `Chỉnh sửa sản phẩm ID: ${productId}` : "Tạo sản phẩm mới"}
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent dividers>
+    <React.Fragment>
+      <Dialog
+        open={openDialogEditProductItem}
+        onClose={onClose}
+        fullWidth
+        maxWidth="lg"
+        slotProps={{
+          paper: {
+            component: "form",
+            onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              handleSubmit(event);
+            },
+          },
+        }}
+      >
+        <DialogTitle>
+          {id ? `Chỉnh sửa sản phẩm ID: ${id}` : "Tạo sản phẩm mới"}
+        </DialogTitle>
+        <DialogContent>
           <Box display="flex" gap={2} overflow="auto">
             {productItems.map((item, index) => (
               <Card key={index} sx={{ minWidth: 300 }}>
@@ -174,49 +204,67 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
                       )}
                     </Typography>
                   </Box>
+
                   <TextField
+                    autoFocus
                     fullWidth
-                    label="Số lượng"
-                    type="number"
-                    name="quantity"
-                    value={item.quantity}
-                    onChange={(e: any) => handleChange(index, e)}
-                    margin="normal"
-                  />
-                  <TextField
-                    fullWidth
+                    required
+                    margin="dense"
                     label="Tên Option"
                     name="nameOption"
-                    value={item.nameOption}
-                    onChange={(e: any) => handleChange(index, e)}
-                    margin="normal"
+                    variant="standard"
+                    value={item.nameOption || ""}
+                    onChange={(e) => handleChange(index, e)}
                   />
+
                   <TextField
                     fullWidth
+                    required
+                    margin="dense"
+                    label="Số lượng"
+                    type="text"
+                    name="quantity"
+                    variant="standard"
+                    value={item.quantity || ""}
+                    placeholder="10"
+                    onChange={(e) => handleChange(index, e)}
+                  />
+
+                  <TextField
+                    fullWidth
+                    required
+                    margin="dense"
                     label="Giá"
-                    type="number"
+                    type="text"
                     name="price"
-                    value={item.price}
-                    onChange={(e: any) => handleChange(index, e)}
-                    margin="normal"
+                    variant="standard"
+                    placeholder="100000000"
+                    value={item.price || ""}
+                    onChange={(e) => handleChange(index, e)}
                   />
                   <TextField
                     fullWidth
+                    required
+                    margin="dense"
                     label="Giá KM"
-                    type="number"
+                    type="text"
                     name="salePrice"
-                    value={item.salePrice}
-                    onChange={(e: any) => handleChange(index, e)}
-                    margin="normal"
+                    variant="standard"
+                    value={item.salePrice || ""}
+                    placeholder="100000000"
+                    onChange={(e) => handleChange(index, e)}
                   />
                   <TextField
                     fullWidth
+                    required
+                    margin="dense"
                     label="SKU"
                     name="sku"
-                    value={item.sku}
-                    onChange={(e: any) => handleChange(index, e)}
-                    margin="normal"
+                    variant="standard"
+                    value={item.sku || ""}
+                    onChange={(e) => handleChange(index, e)}
                   />
+
                   <Box mt={2}>
                     <InputLabel>Hình ảnh</InputLabel>
                     <Button variant="contained" component="label">
@@ -230,12 +278,17 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
                     </Button>
                     {item.imageUrl && (
                       <Box mt={2}>
-                        <img
+                        <Box
+                          component="img"
                           src={item.imageUrl}
                           alt="Sản phẩm"
-                          width={128}
-                          height={128}
-                          style={{ objectFit: "cover" }}
+                          sx={{
+                            width: 128,
+                            height: 128,
+                            objectFit: "cover",
+                            borderRadius: 1,
+                            border: "1px solid #ccc",
+                          }}
                         />
                       </Box>
                     )}
@@ -247,16 +300,14 @@ const EditProductItemDialog: React.FC<Props> = ({ productId, open, onClose }) =>
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={addProductItem}>
-            + Thêm sản phẩm
+            + Add product item
           </Button>
-          <Button onClick={onClose}>Hủy</Button>
+          <Button onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="contained" color="primary">
-            Lưu
+            Save
           </Button>
         </DialogActions>
-      </form>
-    </Dialog>
+      </Dialog>
+    </React.Fragment>
   );
-};
-
-export default EditProductItemDialog;
+}

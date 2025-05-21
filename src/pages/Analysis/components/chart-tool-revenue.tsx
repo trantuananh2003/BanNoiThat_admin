@@ -19,16 +19,30 @@ ChartJS.register(
   Legend
 );
 
-const TotalRevenueChart: React.FC = () => {
+interface ChartIncomeData {
+  incomePerMonth: number[];
+}
+
+export default function TotalRevenueChart ({incomePerMonth,}: ChartIncomeData)  {
   const data = {
     labels: [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ],
     datasets: [
       {
         label: "Total Revenue",
-        data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16],
+        data: incomePerMonth,
         fill: false,
         borderColor: "rgba(75,192,192,1)",
         tension: 0.3,
@@ -40,7 +54,7 @@ const TotalRevenueChart: React.FC = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
+      legend: {
         display: false,
       },
     },
@@ -57,5 +71,3 @@ const TotalRevenueChart: React.FC = () => {
     </div>
   );
 };
-
-export default TotalRevenueChart;
