@@ -33,6 +33,7 @@ import { useEffect, useState } from "react";
 import DialogEditProductInfo from "./dialog-edit-product-info";
 import DialogEditProductItem from "./dialog-edit-product-item";
 import DialogCreateProductInfo from "./dialog-create-product";
+import { toast, ToastContainer } from "react-toastify";
 
 interface Column {
   id: keyof Product | "category.name" | "brand.name";
@@ -156,7 +157,26 @@ export default function TableProduct() {
     setOpenEditItemDialog(true);
   };
 
+  function stripHtmlTags(html: string): string {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+  }
+
   const slugs = Array.from(new Set(data.map((item) => item.slug)));
+
+  const handleDeleteProduct = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await clientAPI.service("products").remove(id);
+        setRefresh((prev) => !prev);
+        toast.success("Product deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        toast.error("Failed to delete product.");
+      }
+    }
+  };
 
   return (
     <Paper
@@ -262,6 +282,13 @@ export default function TableProduct() {
                             }}
                             onClick={() => setSelectedImage(value)}
                           />
+                        ) : column.id === "description" &&
+                          typeof value === "string" ? (
+                          stripHtmlTags(value).length > 50 ? (
+                            `${stripHtmlTags(value).slice(0, 50)}...`
+                          ) : (
+                            stripHtmlTags(value)
+                          )
                         ) : (
                           value
                         )}
@@ -290,7 +317,11 @@ export default function TableProduct() {
                         Phân loại
                       </Button>
                       <Tooltip title="Delete">
-                        <IconButton color="error" size="small">
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() => handleDeleteProduct(row.id)}
+                        >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
