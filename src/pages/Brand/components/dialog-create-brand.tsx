@@ -2,13 +2,13 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import clientAPI from "client-api/rest-client";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { string_to_slug } from "utils/commonFunctions";
+import { toast } from "react-toastify";
 
 interface DialogCreateBrandProps {
   openDialogCreateBrand: boolean;
@@ -27,14 +27,17 @@ export default function DialogCreateBrand({
     const formData = new FormData();
     formData.append("Name", brandName);
     formData.append("Slug", slug);
+
     try {
       await clientAPI.service("Brands").create(formData);
+      setBrandName("");
+      setSlug("");
+      setRefresh((prev) => !prev);
+      toast.success("Brand added successfully!");
     } catch (error) {
       console.error("Error saving new brand:", error);
+      toast.error("Failed to add brand. Please try again.");
     }
-    setBrandName("");
-    setSlug("");
-    setRefresh((prev) => !prev);
   };
   const handleOnChangeBrandName = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

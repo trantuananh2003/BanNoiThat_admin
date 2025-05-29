@@ -2,12 +2,12 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import clientAPI from "client-api/rest-client";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { string_to_slug } from "utils/commonFunctions";
 
 interface DialogEditBrandProps {
@@ -49,14 +49,17 @@ export default function DialogEditBrand({
     const formData = new FormData();
     formData.append("Name", brandName);
     formData.append("Slug", slug);
+
     try {
       await clientAPI.service("Brands").put(id, formData);
+      toast.success("Brand updated successfully!");
+      setBrandName("");
+      setSlug("");
+      setRefresh((prev) => !prev);
     } catch (error) {
-      console.error("Error saving new brand:", error);
+      console.error("Error updating brand:", error);
+      toast.error("Failed to update brand. Please try again.");
     }
-    setBrandName("");
-    setSlug("");
-    setRefresh((prev) => !prev);
   };
   return (
     <React.Fragment>
