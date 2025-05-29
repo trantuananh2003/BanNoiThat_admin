@@ -23,6 +23,9 @@ interface ProductItem {
   price: number;
   salePrice: number;
   sku: string;
+  lengthSize?: number;
+  widthSize?: number;
+  heightSize?: number;
   imageProductItem: any;
   imageUrl?: string;
   isDelete?: boolean;
@@ -61,6 +64,7 @@ export default function DialogEditProductItem({
       fetchProductItems();
     }
   }, [id, openDialogEditProductItem]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
@@ -72,6 +76,9 @@ export default function DialogEditProductItem({
       formData.append(`items[${index}].price`, item.price.toString());
       formData.append(`items[${index}].salePrice`, item.salePrice.toString());
       formData.append(`items[${index}].sku`, item.sku);
+      formData.append(`items[${index}].lengthSize`, item.lengthSize?.toString() || "0");
+      formData.append(`items[${index}].widthSize`, item.widthSize?.toString() || "0");
+      formData.append(`items[${index}].heightSize`, item.heightSize?.toString() || "0");
       formData.append(
         `items[${index}].isDelete`,
         item.isDelete ? item.isDelete.toString() : "false"
@@ -85,10 +92,7 @@ export default function DialogEditProductItem({
     });
 
     try {
-      const response = await clientAPI
-        .service("products")
-        .put(`${id}/product-items`, formData);
-
+      await clientAPI.service("products").put(`${id}/product-items`, formData);
       toast.success("Product items updated successfully!");
       setRefresh((prev) => !prev);
       onClose();
@@ -109,7 +113,11 @@ export default function DialogEditProductItem({
           ? {
               ...item,
               [name]:
-                name.includes("price") || name === "quantity"
+                name.includes("price") ||
+                name === "quantity" ||
+                name === "lengthSize" ||
+                name === "widthSize" ||
+                name === "heightSize"
                   ? Number(value)
                   : value,
             }
@@ -153,6 +161,9 @@ export default function DialogEditProductItem({
         price: 0,
         salePrice: 0,
         sku: "",
+        lengthSize: 0,
+        widthSize: 0,
+        heightSize: 0,
         imageProductItem: null,
       },
     ]);
@@ -167,153 +178,183 @@ export default function DialogEditProductItem({
   };
 
   return (
-    <React.Fragment>
-      <Dialog
-        open={openDialogEditProductItem}
-        onClose={onClose}
-        fullWidth
-        maxWidth="lg"
-        slotProps={{
-          paper: {
-            component: "form",
-            onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-              event.preventDefault();
-              handleSubmit(event);
-            },
+    <Dialog
+      open={openDialogEditProductItem}
+      onClose={onClose}
+      fullWidth
+      maxWidth="lg"
+      slotProps={{
+        paper: {
+          component: "form",
+          onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            handleSubmit(event);
           },
-        }}
-      >
-        <DialogTitle>
-          {id ? `Chỉnh sửa sản phẩm ID: ${id}` : "Tạo sản phẩm mới"}
-        </DialogTitle>
-        <DialogContent>
-          <Box display="flex" gap={2} overflow="auto">
-            {productItems.map((item, index) => (
-              <Card key={index} sx={{ minWidth: 300 }}>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography color="error" fontWeight="bold">
-                      {item.isDelete ? (
-                        <span
-                          onClick={() => deleteProductItem(index)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          Đã xóa
-                        </span>
-                      ) : (
-                        <span
-                          onClick={() => deleteProductItem(index)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          <DeleteIcon fontSize="small" /> X
-                        </span>
-                      )}
-                    </Typography>
-                  </Box>
-
-                  <TextField
-                    autoFocus
-                    fullWidth
-                    required
-                    margin="dense"
-                    label="Tên Option"
-                    name="nameOption"
-                    variant="standard"
-                    value={item.nameOption || ""}
-                    onChange={(e) => handleChange(index, e)}
-                  />
-
-                  <TextField
-                    fullWidth
-                    required
-                    margin="dense"
-                    label="Số lượng"
-                    type="text"
-                    name="quantity"
-                    variant="standard"
-                    value={item.quantity || ""}
-                    placeholder="10"
-                    onChange={(e) => handleChange(index, e)}
-                  />
-
-                  <TextField
-                    fullWidth
-                    required
-                    margin="dense"
-                    label="Giá"
-                    type="text"
-                    name="price"
-                    variant="standard"
-                    placeholder="100000000"
-                    value={item.price || ""}
-                    onChange={(e) => handleChange(index, e)}
-                  />
-                  <TextField
-                    fullWidth
-                    required
-                    margin="dense"
-                    label="Giá KM"
-                    type="text"
-                    name="salePrice"
-                    variant="standard"
-                    value={item.salePrice || ""}
-                    placeholder="100000000"
-                    onChange={(e) => handleChange(index, e)}
-                  />
-                  <TextField
-                    fullWidth
-                    required
-                    margin="dense"
-                    label="SKU"
-                    name="sku"
-                    variant="standard"
-                    value={item.sku || ""}
-                    onChange={(e) => handleChange(index, e)}
-                  />
-
-                  <Box mt={2}>
-                    <InputLabel>Hình ảnh</InputLabel>
-                    <Button variant="contained" component="label">
-                      Chọn hình
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={(e) => handleImageChange(index, e)}
-                      />
-                    </Button>
-                    {item.imageUrl && (
-                      <Box mt={2}>
-                        <Box
-                          component="img"
-                          src={item.imageUrl}
-                          alt="Sản phẩm"
-                          sx={{
-                            width: 128,
-                            height: 128,
-                            objectFit: "cover",
-                            borderRadius: 1,
-                            border: "1px solid #ccc",
-                          }}
-                        />
-                      </Box>
+        },
+      }}
+    >
+      <DialogTitle>
+        {id ? `Chỉnh sửa sản phẩm ID: ${id}` : "Tạo sản phẩm mới"}
+      </DialogTitle>
+      <DialogContent>
+        <Box display="flex" gap={2} overflow="auto">
+          {productItems.map((item, index) => (
+            <Card key={index} sx={{ maxWidth: 300, minWidth: 300 }}>
+              <CardContent>
+                <Box display="flex" justifyContent="space-between">
+                  <Typography color="error" fontWeight="bold">
+                    {item.isDelete ? (
+                      <span
+                        onClick={() => deleteProductItem(index)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        Đã xóa
+                      </span>
+                    ) : (
+                      <span
+                        onClick={() => deleteProductItem(index)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <DeleteIcon fontSize="small" /> X
+                      </span>
                     )}
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={addProductItem}>
-            + Add product item
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained" color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+                  </Typography>
+                </Box>
+
+                <TextField
+                  autoFocus
+                  fullWidth
+                  required
+                  margin="dense"
+                  label="Tên Option"
+                  name="nameOption"
+                  variant="standard"
+                  value={item.nameOption || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  required
+                  margin="dense"
+                  label="Số lượng"
+                  name="quantity"
+                  type="number"
+                  variant="standard"
+                  value={item.quantity || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  required
+                  margin="dense"
+                  label="Giá"
+                  name="price"
+                  type="number"
+                  variant="standard"
+                  value={item.price || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  required
+                  margin="dense"
+                  label="Giá KM"
+                  name="salePrice"
+                  type="number"
+                  variant="standard"
+                  value={item.salePrice || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  required
+                  margin="dense"
+                  label="SKU"
+                  name="sku"
+                  variant="standard"
+                  value={item.sku || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  margin="dense"
+                  label="Chiều dài (cm)"
+                  name="lengthSize"
+                  type="number"
+                  variant="standard"
+                  value={item.lengthSize || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  margin="dense"
+                  label="Chiều rộng (cm)"
+                  name="widthSize"
+                  type="number"
+                  variant="standard"
+                  value={item.widthSize || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <TextField
+                  fullWidth
+                  margin="dense"
+                  label="Chiều cao (cm)"
+                  name="heightSize"
+                  type="number"
+                  variant="standard"
+                  value={item.heightSize || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
+                <Box mt={2}>
+                  <InputLabel>Hình ảnh</InputLabel>
+                  <Button variant="contained" component="label">
+                    Chọn hình
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(index, e)}
+                    />
+                  </Button>
+                  {item.imageUrl && (
+                    <Box mt={2}>
+                      <Box
+                        component="img"
+                        src={item.imageUrl}
+                        alt="Sản phẩm"
+                        sx={{
+                          width: 128,
+                          height: 128,
+                          objectFit: "cover",
+                          borderRadius: 1,
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="contained" onClick={addProductItem}>
+          + Add product item
+        </Button>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button type="submit" variant="contained" color="primary">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
