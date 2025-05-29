@@ -13,6 +13,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { string_to_slug } from "utils/commonFunctions";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import EditorDescription from "./dialog-editor-tool";
+import { toast } from "react-toastify";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -123,7 +124,6 @@ export default function DialogEditProductInfo({
   }, [id]);
 
   const handleSaveProduct = async () => {
-
     const formData = new FormData();
     formData.append("Name", productName);
     formData.append("Slug", slug);
@@ -136,10 +136,12 @@ export default function DialogEditProductInfo({
 
     try {
       await clientAPI.service("products").put(id, formData);
+      toast.success("Product updated successfully!");
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
-      console.error("Error saving new product:", error);
+      console.error("Error editing product:", error);
+      toast.error("Failed to update product. Please try again.");
     }
   };
 

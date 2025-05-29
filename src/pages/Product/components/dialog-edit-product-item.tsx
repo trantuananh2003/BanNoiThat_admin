@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import clientAPI from "../../../client-api/rest-client";
+import { toast } from "react-toastify";
 
 interface ProductItem {
   id: string | null;
@@ -63,6 +64,7 @@ export default function DialogEditProductItem({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
+
     productItems.forEach((item, index) => {
       formData.append(`items[${index}].id`, item.id ? item.id.toString() : "");
       formData.append(`items[${index}].nameOption`, item.nameOption);
@@ -81,14 +83,18 @@ export default function DialogEditProductItem({
         );
       }
     });
+
     try {
       const response = await clientAPI
         .service("products")
         .put(`${id}/product-items`, formData);
+
+      toast.success("Product items updated successfully!");
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
       console.error("Error submitting:", error);
+      toast.error("Failed to update product items. Please try again.");
     }
   };
 

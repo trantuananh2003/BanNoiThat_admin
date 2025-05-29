@@ -13,6 +13,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { string_to_slug } from "utils/commonFunctions";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import EditorDescription from "./dialog-editor-tool";
+import { toast } from "react-toastify";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -99,10 +100,12 @@ export default function DialogCreateProductInfo({
 
     try {
       await clientAPI.service("products").create(formData);
+      toast.success("Product created successfully!");
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
       console.error("Error creating product:", error);
+      toast.error("Failed to create product. Please try again.");
     }
   };
 

@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { string_to_slug } from "utils/commonFunctions";
+import { toast } from "react-toastify";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -61,12 +62,16 @@ export default function DialogCreateCategory({
     if (categoryImage) {
       formData.append("CategoryImage", categoryImage);
     }
+
     try {
       await clientAPI.service("Categories").create(formData);
+      toast.success("Category created successfully!");
       onClose();
     } catch (error) {
       console.error("Error saving new category:", error);
+      toast.error("Failed to create category. Please try again.");
     }
+
     setCategoryName("");
     setSlug("");
     setRefresh((prev) => !prev);
