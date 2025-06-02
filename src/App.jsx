@@ -11,6 +11,7 @@ import Order from "pages/Order";
 import User from "pages/User";
 import Analysis from "pages/Analysis";
 import Auth from "pages/Auth";
+import Role from "pages/Role";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Order />} />
           <Route path="users" element={<User />} />
+          <Route path="roles" element={<Role />} />
           <Route path="analysis" element={<Analysis />} />
         </Route>
       </Routes>

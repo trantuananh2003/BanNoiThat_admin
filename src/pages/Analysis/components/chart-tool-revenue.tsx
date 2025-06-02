@@ -66,7 +66,7 @@ export default function TotalRevenueChart ({incomePerMonth,}: ChartIncomeData)  
   };
 
   return (
-    <div style={{ width: 600, height: 300 }}>
+    <div style={{ width: 1200, height: 350 }}>
       <Line data={data} options={options} />
     </div>
   );

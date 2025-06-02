@@ -25,7 +25,7 @@ export default function CardOrderAnalysist({
             Orders
           </Typography>
           <Typography variant="h4" fontWeight="bold">
-            {numberCurrentWeek}
+            {numberCurrentWeek.toLocaleString('vi-VN')}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
             <Typography
