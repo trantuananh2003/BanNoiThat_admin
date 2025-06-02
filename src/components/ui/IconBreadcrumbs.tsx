@@ -8,6 +8,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import StorageIcon from "@mui/icons-material/Storage";
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
@@ -42,6 +43,10 @@ export default function IconBreadcrumbs() {
     case "/admin/users":
       path = "Users";
       icon = <PeopleAltIcon sx={{ mr: 0.5 }} fontSize="inherit"/>;
+      break;
+      case "/admin/roles":
+      path = "Roles";
+      icon = <EngineeringIcon sx={{ mr: 0.5 }} fontSize="inherit"/>;
       break;
     case "/admin/analysis":
       path = "Analysis";

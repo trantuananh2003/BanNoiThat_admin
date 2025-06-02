@@ -5,6 +5,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import MenuIcon from "@mui/icons-material/Menu";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import EngineeringIcon from '@mui/icons-material/Engineering';
 import StorageIcon from "@mui/icons-material/Storage";
 import { Avatar, Menu, MenuItem, Tooltip } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -61,6 +62,12 @@ const NAVIGATION = [
   },
   {
     id: 5,
+    icon: <EngineeringIcon />,
+    label: "Roles",
+    route: "/admin/roles",
+  },
+  {
+    id: 6,
     icon: <AnalyticsIcon />,
     label: "Analysis",
     route: "/admin/analysis",

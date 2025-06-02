@@ -2,7 +2,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import SearchIcon from "@mui/icons-material/Search";
-import BlockIcon from "@mui/icons-material/Block";
 import {
   Button,
   FormControl,
@@ -27,11 +26,12 @@ import {
 import clientAPI from "client-api/rest-client";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import DialogSetRoleUser from "./dialog-set-role-user";
+import DialogCreateRole from "./dialog-create-role";
+import DialogEditPermissionRoleRole from "./dialog-edit-permission-role";
+import DialogEditPermissionRole from "./dialog-edit-permission-role";
 
 interface Column {
-  id: "id" | "fullName" | "email" | "role_Id" | "isBlocked";
+  id: "id" | "name" | "roleClaims.claimValue";
   label: string;
   minWidth?: number;
   align?: "right";
@@ -40,82 +40,62 @@ interface Column {
 
 const columns: readonly Column[] = [
   { id: "id", label: "ID", minWidth: 170 },
-  { id: "fullName", label: "Full Name", minWidth: 100 },
-  { id: "email", label: "Email", minWidth: 100 },
-  { id: "role_Id", label: "Role", minWidth: 100 },
+  { id: "name", label: "Role Name", minWidth: 100 },
+  { id: "roleClaims.claimValue", label: "Role Claims", minWidth: 100 },
 ];
 
-interface User {
+interface RoleClaims {
   id: string;
-  fullName: string;
-  email: string;
-  isMale: string;
   role_Id: string;
-  birthday: string;
-  isBlocked: boolean;
+  claimType: string;
+  claimValue: string;
 }
 
-export default function TableUser() {
+interface Role {
+  id: string;
+  name: string;
+  roleClaims: RoleClaims[];
+}
+
+export default function TableRole() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [data, setData] = useState<User[]>([]);
+  const [data, setData] = useState<Role[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [editId, setEditId] = useState<string>("");
-  const [roleId, setRoleId] = useState<string>("");
   const [refresh, setRefresh] = useState(false);
+  const [openDialogCreateRole, setOpenDialogCreateRole] = React.useState(false);
+  const handleClickOpenDialogCreateRole = () => {
+    setOpenDialogCreateRole(true);
+  };
+
+  const [openDialogEditPermissionRole, setOpenDialogEditPermissionRole] =
+    React.useState(false);
+  const handleClickOpenDialogEditPermissionRole = (id: string) => {
+    setEditId(id);
+    setOpenDialogEditPermissionRole(true);
+  };
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchRoles = async () => {
       try {
-        const response: { result: User[] } = await clientAPI
-          .service("users")
-          .find(`pageCurrent=${1}&pageSize=${10}`);
+        const response: { result: Role[] } = await clientAPI
+          .service("roles")
+          .find("");
         setData(response.result);
       } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("Error fetching roles:", error);
       }
     };
-    fetchUsers();
+    fetchRoles();
   }, [editId, refresh]);
-  const filteredData = data.filter((user) => {
-    const matchesSearchByName = user.fullName
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesSearchByEmail = user.email
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  const filteredData = data.filter((role) => {
     const matchesFilter = filter === "all"; // || user.slug === filter;
-    return (matchesSearchByName || matchesSearchByEmail) && matchesFilter;
+    return matchesFilter;
   });
 
-  const handleEdit = (id: string) => {
-    setEditId(id);
-  };
-
-  const handleBlockOrUnblockUser = async (id: string, isBlocked: boolean) => {
-    const confirmMessage = isBlocked
-      ? "Are you sure you want to unblock this account?"
-      : "Are you sure you want to block this account?";
-
-    const confirmed = window.confirm(confirmMessage);
-    if (!confirmed) return;
-
-    const formData = new FormData();
-    formData.append("isblock", (!isBlocked).toString());
-    try {
-      await clientAPI.service("users").put(`${id}/is-block`, formData);
-      setRefresh((prev) => !prev);
-
-      toast.success(
-        isBlocked
-          ? "Account unblocked successfully."
-          : "Account blocked successfully."
-      );
-    } catch (error) {
-      console.error("Error blocking/unblocking account:", error);
-      toast.error("Something went wrong. Please try again.");
-    }
-  };
+  const getNestedValue = (obj: any, path: string): any =>
+    path.split(".").reduce((acc, key) => acc?.[key], obj);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -127,14 +107,6 @@ export default function TableUser() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
-
-  const [openDialogSetRoleUser, setOpenDialogSetRoleUser] =
-      React.useState(false);
-    const handleClickOpenDialogSetRoleUser = (id: string, role_Id: string) => {
-      setEditId(id);
-      setRoleId(role_Id);
-      setOpenDialogSetRoleUser(true);
-    };
   return (
     <Paper
       sx={{
@@ -154,7 +126,7 @@ export default function TableUser() {
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-          <TextField
+          {/* <TextField
             variant="outlined"
             size="small"
             placeholder="Search by name or email"
@@ -167,7 +139,7 @@ export default function TableUser() {
                 </InputAdornment>
               ),
             }}
-          />
+          /> */}
           <FormControl size="small">
             <InputLabel>Slug</InputLabel>
             {/* <Select
@@ -187,7 +159,18 @@ export default function TableUser() {
                 </Select> */}
           </FormControl>
         </Stack>
-        <Button>CREATE NEW USER</Button>
+        <Button
+          onClick={() => {
+            handleClickOpenDialogCreateRole();
+          }}
+        >
+          CREATE NEW ROLE
+        </Button>
+        <DialogCreateRole
+          openDialogCreateRole={openDialogCreateRole}
+          onClose={() => setOpenDialogCreateRole(false)}
+          setRefresh={setRefresh}
+        />
       </Toolbar>
 
       <TableContainer sx={{ maxHeight: 500 }}>
@@ -232,7 +215,15 @@ export default function TableUser() {
                   }}
                 >
                   {columns.map((column) => {
-                    const value = row[column.id];
+                    let value;
+
+                    if (column.id === "roleClaims.claimValue") {
+                      value = row.roleClaims
+                        ?.map((rc) => rc.claimValue)
+                        .join(", ");
+                    } else {
+                      value = getNestedValue(row, column.id);
+                    }
                     return (
                       <TableCell key={column.id} align={column.align}>
                         {column.format && typeof value === "number"
@@ -251,57 +242,37 @@ export default function TableUser() {
                             bgcolor: "",
                             "&:hover": { bgcolor: "primary.light" },
                           }}
-                          onClick={() => handleClickOpenDialogSetRoleUser(row.id, row.role_Id)}
+                          onClick={() =>
+                            handleClickOpenDialogEditPermissionRole(row.id)
+                          }
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      {row.isBlocked ? (
-                        <Tooltip title="Unblock Account" placement="top">
-                          <IconButton
-                            color="success"
-                            size="small"
-                            sx={{
-                              bgcolor: "",
-                              "&:hover": { bgcolor: "success.light" },
-                            }}
-                            onClick={() =>
-                              handleBlockOrUnblockUser(row.id, row.isBlocked)
-                            }
-                          >
-                            <BlockIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="Block Account" placement="top">
-                          <IconButton
-                            color="error"
-                            size="small"
-                            sx={{
-                              bgcolor: "",
-                              "&:hover": { bgcolor: "error.light" },
-                            }}
-                            onClick={() =>
-                              handleBlockOrUnblockUser(row.id, row.isBlocked)
-                            }
-                          >
-                            <BlockIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      <Tooltip title="Delete" placement="top">
+                        <IconButton
+                          color="error"
+                          size="small"
+                          sx={{
+                            bgcolor: "",
+                            "&:hover": { bgcolor: "error.light" },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>
               ))}
+            <DialogEditPermissionRole
+              id={editId}
+              openDialogEditPermissionRole={openDialogEditPermissionRole}
+              onClose={() => setOpenDialogEditPermissionRole(false)}
+              setRefresh={setRefresh}
+            />
           </TableBody>
         </Table>
-        <DialogSetRoleUser
-        id={editId}
-        role_Id={roleId}
-                  openDialogSetRoleUser={openDialogSetRoleUser}
-                  onClose={() => setOpenDialogSetRoleUser(false)}
-                  setRefresh={setRefresh}
-                />
       </TableContainer>
 
       <TablePagination

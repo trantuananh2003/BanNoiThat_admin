@@ -92,7 +92,7 @@ export default function DialogCreateProductInfo({
     formData.append("Name", productName);
     formData.append("Slug", slug);
     if (thumbnailUrl) {
-      formData.append("Image", thumbnailUrl);
+      formData.append("ThumbnailImage", thumbnailUrl);
     }
     formData.append("Category_Id", category?.id || "");
     formData.append("Brand_Id", brand?.id || "");
@@ -102,6 +102,19 @@ export default function DialogCreateProductInfo({
       await clientAPI.service("products").create(formData);
       toast.success("Product created successfully!");
       setRefresh((prev) => !prev);
+
+      // Reset form state
+      setProductName("");
+      setSlug("");
+      setThumbnailUrl(undefined);
+      setDescription("");
+      setBrand(undefined);
+      setCategory(undefined);
+      if (previewImage?.startsWith("blob:")) {
+        URL.revokeObjectURL(previewImage);
+      }
+      setPreviewImage(null);
+
       onClose();
     } catch (error) {
       console.error("Error creating product:", error);

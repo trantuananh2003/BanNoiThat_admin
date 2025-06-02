@@ -25,7 +25,7 @@ export default function CardIncomeAnalysist({
             Income
           </Typography>
           <Typography variant="h4" fontWeight="bold">
-            {"$"} {revenueCurrentWeek}
+            {revenueCurrentWeek.toLocaleString('vi-VN')}{"đ"}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
             <Typography
