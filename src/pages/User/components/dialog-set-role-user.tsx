@@ -38,7 +38,9 @@ export default function DialogSetRoleUser({
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res: { result: Role[] } = await clientAPI.service("roles").get("");
+        const res: { result: Role[] } = await clientAPI
+          .service("roles")
+          .get("");
         setRoles(res.result);
         setSelectedRole(role_Id); // preselect current role
       } catch (error) {
@@ -57,7 +59,7 @@ export default function DialogSetRoleUser({
 
   const handleSubmit = async () => {
     if (!selectedRole) {
-      toast.error("Vui lòng chọn role");
+      toast.error("Please select a role");
       return;
     }
 
@@ -66,17 +68,22 @@ export default function DialogSetRoleUser({
       formData.append("roleId", selectedRole);
 
       await clientAPI.service(`users/${id}/set-role`).create(formData);
-      toast.success("Cập nhật quyền thành công");
+      toast.success("Role updated successfully");
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
       console.error("Failed to update role", error);
-      toast.error("Cập nhật quyền thất bại");
+      toast.error("Failed to update role");
     }
   };
 
   return (
-    <Dialog open={openDialogSetRoleUser} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={openDialogSetRoleUser}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>Chọn vai trò cho người dùng</DialogTitle>
       <DialogContent>
         <FormControl fullWidth margin="normal">
