@@ -1,17 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminLayout from "./layouts/AdminLayout";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
-import { setUser } from "./redux/features/userSlice";
-import Brand from "pages/Brand";
-import Category from "pages/Category";
-import Product from "pages/Product";
-import Order from "pages/Order";
-import User from "pages/User";
 import Analysis from "pages/Analysis";
 import Auth from "pages/Auth";
+import Brand from "pages/Brand";
+import Category from "pages/Category";
+import Order from "pages/Order";
+import Product from "pages/Product";
 import Role from "pages/Role";
+import SaleProgram from "pages/SaleProgram";
+import User from "pages/User";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import AdminLayout from "./layouts/AdminLayout";
+import { setUser } from "./redux/features/userSlice";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -36,6 +37,7 @@ const App = () => {
           <Route path="users" element={<User />} />
           <Route path="roles" element={<Role />} />
           <Route path="analysis" element={<Analysis />} />
+          <Route path="salePrograms" element={<SaleProgram />} />
         </Route>
       </Routes>
     </Router>

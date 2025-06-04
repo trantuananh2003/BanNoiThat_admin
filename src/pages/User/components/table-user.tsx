@@ -129,12 +129,12 @@ export default function TableUser() {
   };
 
   const [openDialogSetRoleUser, setOpenDialogSetRoleUser] =
-      React.useState(false);
-    const handleClickOpenDialogSetRoleUser = (id: string, role_Id: string) => {
-      setEditId(id);
-      setRoleId(role_Id);
-      setOpenDialogSetRoleUser(true);
-    };
+    React.useState(false);
+  const handleClickOpenDialogSetRoleUser = (id: string, role_Id: string) => {
+    setEditId(id);
+    setRoleId(role_Id);
+    setOpenDialogSetRoleUser(true);
+  };
   return (
     <Paper
       sx={{
@@ -251,7 +251,12 @@ export default function TableUser() {
                             bgcolor: "",
                             "&:hover": { bgcolor: "primary.light" },
                           }}
-                          onClick={() => handleClickOpenDialogSetRoleUser(row.id, row.role_Id)}
+                          onClick={() =>
+                            handleClickOpenDialogSetRoleUser(
+                              row.id,
+                              row.role_Id
+                            )
+                          }
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -296,12 +301,12 @@ export default function TableUser() {
           </TableBody>
         </Table>
         <DialogSetRoleUser
-        id={editId}
-        role_Id={roleId}
-                  openDialogSetRoleUser={openDialogSetRoleUser}
-                  onClose={() => setOpenDialogSetRoleUser(false)}
-                  setRefresh={setRefresh}
-                />
+          id={editId}
+          role_Id={roleId}
+          openDialogSetRoleUser={openDialogSetRoleUser}
+          onClose={() => setOpenDialogSetRoleUser(false)}
+          setRefresh={setRefresh}
+        />
       </TableContainer>
 
       <TablePagination

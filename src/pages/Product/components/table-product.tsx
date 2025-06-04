@@ -1,5 +1,3 @@
-// Optimized full React component with MUI and TypeScript
-
 import {
   Build,
   Delete as DeleteIcon,
