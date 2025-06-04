@@ -6,6 +6,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import EngineeringIcon from '@mui/icons-material/Engineering';
+import RedeemIcon from '@mui/icons-material/Redeem';
 import StorageIcon from "@mui/icons-material/Storage";
 import { Avatar, Menu, MenuItem, Tooltip } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -68,6 +69,12 @@ const NAVIGATION = [
   },
   {
     id: 6,
+    icon: <RedeemIcon />,
+    label: "Sale Programs",
+    route: "/admin/salePrograms",
+  },
+  {
+    id: 7,
     icon: <AnalyticsIcon />,
     label: "Analysis",
     route: "/admin/analysis",
