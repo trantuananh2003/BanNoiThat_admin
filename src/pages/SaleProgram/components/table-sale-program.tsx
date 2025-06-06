@@ -51,6 +51,7 @@ interface SaleProgram {
   applyValues: string;
   isActive: boolean;
   productItems: any;
+  status: string;
 }
 
 interface Column {
@@ -63,7 +64,7 @@ interface Column {
 
 const columns: readonly Column[] = [
   { id: "name", label: "Name", minWidth: 170 },
-  { id: "description", label: "Description", minWidth: 200 },
+  { id: "description", label: "Description", minWidth: 170 },
   {
     id: "startDate",
     label: "Start Date",
@@ -80,13 +81,13 @@ const columns: readonly Column[] = [
   {
     id: "discountValue",
     label: "Value",
-    minWidth: 100,
+    minWidth: 80,
     format: (value) => `${value}%`,
   },
   {
     id: "maxDiscount",
     label: "Max Discount",
-    minWidth: 150,
+    minWidth: 130,
     format: (value) => `${value.toLocaleString()}₫`,
   },
   {
@@ -97,9 +98,14 @@ const columns: readonly Column[] = [
   {
     id: "applyValues",
     label: "Apply Values",
-    minWidth: 150,
+    minWidth: 135,
     format: (value, row) => value, // Placeholder, overridden in component
   },
+  {
+    id: "status",
+    label: "Status",
+    minWidth: 100,
+  }
 ];
 
 export default function TableSaleProgram() {

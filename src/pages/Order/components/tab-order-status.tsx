@@ -30,7 +30,7 @@ const OrderPage = () => {
     setIsLoading(true);
     try {
       const response: ApiResponse = await clientAPI
-        .service("orders/customer")
+        .service("orders/manager")
         .find(`orderStatus=${activeTab}`);
       setDataOrders(response.result || []);
     } catch (error) {

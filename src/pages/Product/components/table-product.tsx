@@ -203,7 +203,7 @@ export default function TableProduct() {
               ),
             }}
           />
-          <FormControl size="small">
+          {/* <FormControl size="small">
             <InputLabel>Slug</InputLabel>
             <Select
               value={filter}
@@ -218,7 +218,7 @@ export default function TableProduct() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
         </Stack>
         <Button
           onClick={() => {
@@ -304,16 +304,15 @@ export default function TableProduct() {
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        startIcon={<Build fontSize="small" />}
-                        sx={{ borderRadius: 5, textTransform: "none" }}
-                        onClick={() => handleOpenEditItem(row.id)}
-                      >
-                        Phân loại
-                      </Button>
+                      <Tooltip title="Edit Product Items">
+                        <IconButton
+                          color="secondary"
+                          size="small"
+                          onClick={() => handleOpenEditItem(row.id)}
+                        >
+                          <Build fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Delete">
                         <IconButton
                           color="error"
