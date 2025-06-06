@@ -26,8 +26,11 @@ interface ProductItem {
   lengthSize?: number;
   widthSize?: number;
   heightSize?: number;
+  weight?: number;
   imageProductItem: any;
   imageUrl?: string;
+  modelUrl?: string;
+  modelFile?: any;
   isDelete?: boolean;
 }
 
@@ -79,6 +82,7 @@ export default function DialogEditProductItem({
       formData.append(`items[${index}].lengthSize`, item.lengthSize?.toString() || "0");
       formData.append(`items[${index}].widthSize`, item.widthSize?.toString() || "0");
       formData.append(`items[${index}].heightSize`, item.heightSize?.toString() || "0");
+      formData.append(`items[${index}].weight`, item.weight?.toString() || "0");
       formData.append(
         `items[${index}].isDelete`,
         item.isDelete ? item.isDelete.toString() : "false"
@@ -87,6 +91,12 @@ export default function DialogEditProductItem({
         formData.append(
           `items[${index}].imageProductItem`,
           item.imageProductItem
+        );
+      }
+      if (item.modelFile) {
+        formData.append(
+          `items[${index}].modelFile`,
+          item.modelFile
         );
       }
     });
@@ -117,7 +127,8 @@ export default function DialogEditProductItem({
                 name === "quantity" ||
                 name === "lengthSize" ||
                 name === "widthSize" ||
-                name === "heightSize"
+                name === "heightSize" ||
+                name === "weight"
                   ? Number(value)
                   : value,
             }
@@ -151,6 +162,31 @@ export default function DialogEditProductItem({
     }
   };
 
+  const handleModelChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      setProductItems((prev) =>
+        prev.map((item, i) =>
+          i === index ? { ...item, modelFile: file } : item
+        )
+      );
+
+      reader.onload = (e) => {
+        const modelUrl = e.target?.result as string;
+        setProductItems((prev) =>
+          prev.map((item, i) =>
+            i === index ? { ...item, modelUrl: modelUrl } : item
+          )
+        );
+      };
+    }
+  };
+
   const addProductItem = () => {
     setProductItems((prev) => [
       ...prev,
@@ -164,7 +200,9 @@ export default function DialogEditProductItem({
         lengthSize: 0,
         widthSize: 0,
         heightSize: 0,
+        weight: 0,
         imageProductItem: null,
+        modelFile: null,
       },
     ]);
   };
@@ -313,6 +351,17 @@ export default function DialogEditProductItem({
                   onChange={(e) => handleChange(index, e)}
                 />
 
+                <TextField
+                  fullWidth
+                  margin="dense"
+                  label="Trọng lượng (kg)"
+                  name="weight"
+                  type="number"
+                  variant="standard"
+                  value={item.weight || ""}
+                  onChange={(e) => handleChange(index, e)}
+                />
+
                 <Box mt={2}>
                   <InputLabel>Hình ảnh</InputLabel>
                   <Button variant="contained" component="label">
@@ -338,6 +387,26 @@ export default function DialogEditProductItem({
                           border: "1px solid #ccc",
                         }}
                       />
+                    </Box>
+                  )}
+                </Box>
+
+                <Box mt={2}>
+                  <InputLabel>Mô hình</InputLabel>
+                  <Button variant="contained" component="label">
+                    Chọn mô hình
+                    <input
+                      type="file"
+                      hidden
+                      accept=".glb,.gltf,.obj,.fbx"
+                      onChange={(e) => handleModelChange(index, e)}
+                    />
+                  </Button>
+                  {item.modelUrl && (
+                    <Box mt={2}>
+                      <Typography variant="body2">
+                        Mô hình: {item.modelFile?.name || "Đã chọn"}
+                      </Typography>
                     </Box>
                   )}
                 </Box>

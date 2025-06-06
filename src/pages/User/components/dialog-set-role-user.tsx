@@ -19,7 +19,7 @@ interface Role {
 
 interface DialogSetRoleUserProps {
   id: string; // user id
-  role_Id: string; // current role id
+  role_Id: string | null; // current role id, can be null
   openDialogSetRoleUser: boolean;
   onClose: () => void;
   setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,7 +33,7 @@ export default function DialogSetRoleUser({
   setRefresh,
 }: DialogSetRoleUserProps) {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -42,7 +42,7 @@ export default function DialogSetRoleUser({
           .service("roles")
           .get("");
         setRoles(res.result);
-        setSelectedRole(role_Id); // preselect current role
+        setSelectedRole(role_Id);
       } catch (error) {
         console.error("Failed to fetch roles", error);
       }
@@ -54,19 +54,16 @@ export default function DialogSetRoleUser({
   }, [openDialogSetRoleUser, role_Id]);
 
   const handleChange = (event: any) => {
-    setSelectedRole(event.target.value);
+    const value = event.target.value === "no-role" ? null : event.target.value;
+    setSelectedRole(value);
   };
 
   const handleSubmit = async () => {
-    if (!selectedRole) {
-      toast.error("Please select a role");
-      return;
-    }
-
     try {
       const formData = new FormData();
-      formData.append("roleId", selectedRole);
-
+      if (selectedRole !== null) {
+        formData.append("roleId", selectedRole);
+      }
       await clientAPI.service(`users/${id}/set-role`).create(formData);
       toast.success("Role updated successfully");
       setRefresh((prev) => !prev);
@@ -90,10 +87,11 @@ export default function DialogSetRoleUser({
           <InputLabel id="select-role-label">Vai trò</InputLabel>
           <Select
             labelId="select-role-label"
-            value={selectedRole}
+            value={selectedRole || "no-role"}
             onChange={handleChange}
             label="Vai trò"
           >
+            <MenuItem value="no-role">No Role</MenuItem>
             {roles.map((role) => (
               <MenuItem key={role.id} value={role.id}>
                 {role.name}

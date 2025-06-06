@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextStyle from "@tiptap/extension-text-style";
@@ -8,6 +8,7 @@ import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Heading from "@tiptap/extension-heading";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import FormatBoldIcon from "@mui/icons-material/FormatBold";
 import FormatItalicIcon from "@mui/icons-material/FormatItalic";
 import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
@@ -20,18 +21,23 @@ const extensions = [
   StarterKit.configure({
     bulletList: { keepMarks: true },
     orderedList: { keepMarks: true },
+    heading: false, // Tắt heading mặc định
   }),
   Underline,
   TextStyle,
   Color,
   ListItem,
-  Image,
+  Image.configure({
+    inline: true,
+    allowBase64: true,
+  }),
   TextAlign.configure({
     types: ["heading", "paragraph"],
   }),
   Heading.configure({
     levels: [1, 2, 3],
   }),
+  HorizontalRule,
 ];
 
 interface EditorDescriptionProps {
@@ -40,7 +46,8 @@ interface EditorDescriptionProps {
 }
 
 export default function EditorDescription({
-  description, onChange
+  description,
+  onChange,
 }: EditorDescriptionProps) {
   const [htmlOutput, setHtmlOutput] = useState("");
 
@@ -49,7 +56,7 @@ export default function EditorDescription({
     content: description,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      onChange(html); 
+      onChange(html);
     },
     editorProps: {
       handlePaste(view, event) {
@@ -78,6 +85,19 @@ export default function EditorDescription({
     },
   });
 
+  useEffect(() => {
+    if (editor) {
+      console.log("Editor initialized:", editor);
+      editor.commands.setContent(description);
+      editor.on("update", () => {
+        console.log("Editor JSON:", editor.getJSON());
+        console.log("Editor HTML:", editor.getHTML());
+      });
+    } else {
+      console.log("Editor not initialized");
+    }
+  }, [editor, description]);
+
   const buttonStyle = (isActive: boolean) =>
     `flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-150 ${
       isActive
@@ -96,12 +116,14 @@ export default function EditorDescription({
         ✍️ Product Description Editor
       </h1>
 
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-3 mb-4">
         <Tooltip title="Bold">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().toggleBold().run()}
+            onClick={() => {
+              console.log("Bold button clicked");
+              editor?.chain().focus().toggleBold().run();
+            }}
             className={buttonStyle(editor?.isActive("bold") || false)}
           >
             <FormatBoldIcon />
@@ -111,7 +133,10 @@ export default function EditorDescription({
         <Tooltip title="Italic">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            onClick={() => {
+              console.log("Italic button clicked");
+              editor?.chain().focus().toggleItalic().run();
+            }}
             className={buttonStyle(editor?.isActive("italic") || false)}
           >
             <FormatItalicIcon />
@@ -121,7 +146,10 @@ export default function EditorDescription({
         <Tooltip title="Underline">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().toggleUnderline().run()}
+            onClick={() => {
+              console.log("Underline button clicked");
+              editor?.chain().focus().toggleUnderline().run();
+            }}
             className={buttonStyle(editor?.isActive("underline") || false)}
           >
             <FormatUnderlinedIcon />
@@ -131,7 +159,10 @@ export default function EditorDescription({
         <Tooltip title="Align Left">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().setTextAlign("left").run()}
+            onClick={() => {
+              console.log("Align Left button clicked");
+              editor?.chain().focus().setTextAlign("left").run();
+            }}
             className={buttonStyle(
               editor?.isActive({ textAlign: "left" }) || false
             )}
@@ -143,7 +174,10 @@ export default function EditorDescription({
         <Tooltip title="Align Center">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().setTextAlign("center").run()}
+            onClick={() => {
+              console.log("Align Center button clicked");
+              editor?.chain().focus().setTextAlign("center").run();
+            }}
             className={buttonStyle(
               editor?.isActive({ textAlign: "center" }) || false
             )}
@@ -155,7 +189,10 @@ export default function EditorDescription({
         <Tooltip title="Align Right">
           <button
             type="button"
-            onClick={() => editor?.chain().focus().setTextAlign("right").run()}
+            onClick={() => {
+              console.log("Align Right button clicked");
+              editor?.chain().focus().setTextAlign("right").run();
+            }}
             className={buttonStyle(
               editor?.isActive({ textAlign: "right" }) || false
             )}
@@ -164,14 +201,31 @@ export default function EditorDescription({
           </button>
         </Tooltip>
 
+        <Tooltip title="Paragraph">
+          <button
+            type="button"
+            onClick={() => {
+              console.log("Paragraph button clicked");
+              editor?.chain().focus().setParagraph().run();
+            }}
+            className={buttonStyle(editor?.isActive("paragraph") || false)}
+          >
+            P
+          </button>
+        </Tooltip>
+
         <Tooltip title="Heading 1">
           <button
             type="button"
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 1 }).run()
-            }
+            onClick={() => {
+              console.log("H1 button clicked");
+              if (editor) {
+                editor.chain().focus().setHeading({ level: 1 }).run();
+                console.log("H1 applied:", editor.isActive("heading", { level: 1 }));
+              }
+            }}
             className={buttonStyle(
-              editor?.isActive('heading', { level: 1 }) || false
+              editor?.isActive("heading", { level: 1 }) || false
             )}
           >
             H1
@@ -181,11 +235,15 @@ export default function EditorDescription({
         <Tooltip title="Heading 2">
           <button
             type="button"
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 2 }).run()
-            }
+            onClick={() => {
+              console.log("H2 button clicked");
+              if (editor) {
+                editor.chain().focus().setHeading({ level: 2 }).run();
+                console.log("H2 applied:", editor.isActive("heading", { level: 2 }));
+              }
+            }}
             className={buttonStyle(
-              editor?.isActive('heading', { level: 2 }) || false
+              editor?.isActive("heading", { level: 2 }) || false
             )}
           >
             H2
@@ -195,11 +253,15 @@ export default function EditorDescription({
         <Tooltip title="Heading 3">
           <button
             type="button"
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 3 }).run()
-            }
+            onClick={() => {
+              console.log("H3 button clicked");
+              if (editor) {
+                editor.chain().focus().setHeading({ level: 3 }).run();
+                console.log("H3 applied:", editor.isActive("heading", { level: 3 }));
+              }
+            }}
             className={buttonStyle(
-              editor?.isActive('heading', { level: 3 }) || false
+              editor?.isActive("heading", { level: 3 }) || false
             )}
           >
             H3
@@ -207,12 +269,10 @@ export default function EditorDescription({
         </Tooltip>
       </div>
 
-      {/* Editor area */}
       <div className="border rounded-lg p-4 min-h-[150px] prose max-w-none focus:outline-none">
         <EditorContent editor={editor} />
       </div>
 
-      {/* Action buttons */}
       <div className="flex gap-3 mt-4">
         <button
           type="button"
@@ -223,7 +283,6 @@ export default function EditorDescription({
         </button>
       </div>
 
-      {/* Preview output */}
       {htmlOutput && (
         <div className="mt-6 border p-4 rounded-lg bg-gray-50">
           <h2 className="font-bold mb-2">Preview</h2>
