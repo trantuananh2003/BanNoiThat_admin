@@ -187,7 +187,6 @@ export default function TableUser() {
                 </Select> */}
           </FormControl>
         </Stack>
-        <Button>CREATE NEW USER</Button>
       </Toolbar>
 
       <TableContainer sx={{ maxHeight: 500 }}>

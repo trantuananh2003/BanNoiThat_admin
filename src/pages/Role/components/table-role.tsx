@@ -27,8 +27,8 @@ import clientAPI from "client-api/rest-client";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import DialogCreateRole from "./dialog-create-role";
-import DialogEditPermissionRoleRole from "./dialog-edit-permission-role";
 import DialogEditPermissionRole from "./dialog-edit-permission-role";
+import { toast } from "react-toastify";
 
 interface Column {
   id: "id" | "name" | "roleClaims.claimValue";
@@ -66,6 +66,7 @@ export default function TableRole() {
   const [editId, setEditId] = useState<string>("");
   const [refresh, setRefresh] = useState(false);
   const [openDialogCreateRole, setOpenDialogCreateRole] = React.useState(false);
+
   const handleClickOpenDialogCreateRole = () => {
     setOpenDialogCreateRole(true);
   };
@@ -76,6 +77,23 @@ export default function TableRole() {
     setEditId(id);
     setOpenDialogEditPermissionRole(true);
   };
+
+  const handleDeleteRole = async (id: string, name: string) => {
+    const confirmMessage = `Are you sure you want to delete the role "${name}"? This action cannot be undone.`;
+    
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) return;
+
+    try {
+      await clientAPI.service("roles").remove(id);
+      setRefresh((prev) => !prev);
+      toast.success(`Role "${name}" deleted successfully.`);
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      toast.error("Failed to delete role. Please try again.");
+    }
+  };
+
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -85,12 +103,14 @@ export default function TableRole() {
         setData(response.result);
       } catch (error) {
         console.error("Error fetching roles:", error);
+        toast.error("Error fetching roles.");
       }
     };
     fetchRoles();
   }, [editId, refresh]);
+
   const filteredData = data.filter((role) => {
-    const matchesFilter = filter === "all"; // || user.slug === filter;
+    const matchesFilter = filter === "all";
     return matchesFilter;
   });
 
@@ -107,6 +127,7 @@ export default function TableRole() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
   return (
     <Paper
       sx={{
@@ -126,37 +147,8 @@ export default function TableRole() {
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-          {/* <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search by name or email"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          /> */}
           <FormControl size="small">
             <InputLabel>Slug</InputLabel>
-            {/* <Select
-                  value={filter}
-                  label="Slug"
-                  onChange={(e) => setFilter(e.target.value)}
-                  sx={{ minWidth: 120 }}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  {Array.from(new Set(data.map((item) => item.slug))).map(
-                    (slug) => (
-                      <MenuItem key={slug} value={slug}>
-                        {slug}
-                      </MenuItem>
-                    )
-                  )}
-                </Select> */}
           </FormControl>
         </Stack>
         <Button
@@ -257,6 +249,7 @@ export default function TableRole() {
                             bgcolor: "",
                             "&:hover": { bgcolor: "error.light" },
                           }}
+                          onClick={() => handleDeleteRole(row.id, row.name)}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>

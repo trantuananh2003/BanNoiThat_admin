@@ -99,7 +99,7 @@ const columns: readonly Column[] = [
     id: "applyValues",
     label: "Apply Values",
     minWidth: 135,
-    format: (value, row) => value, // Placeholder, overridden in component
+    format: (value, row) => value,
   },
   {
     id: "status",
@@ -206,6 +206,22 @@ export default function TableSaleProgram() {
     setPage(0);
   };
 
+  const handleDeleteSaleProgram = async (id: string, name: string) => {
+    const confirmMessage = `Are you sure you want to delete the sale program "${name}"? This action cannot be undone.`;
+    
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) return;
+
+    try {
+      await clientAPI.service("saleprogram").remove(id);
+      setRefresh((prev) => !prev);
+      toast.success(`Sale program "${name}" deleted successfully.`);
+    } catch (error) {
+      console.error("Error deleting sale program:", error);
+      toast.error("Failed to delete sale program. Please try again.");
+    }
+  };
+
   const filteredData = data.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -308,7 +324,7 @@ export default function TableSaleProgram() {
                   {column.label}
                 </TableCell>
               ))}
-              <TableCell key="action" style={{ minWidth: 120 }}>
+              <TableCell key="action" style={{ minWidth: 150 }}>
                 Action
               </TableCell>
             </TableRow>
@@ -352,6 +368,18 @@ export default function TableSaleProgram() {
                           }
                         >
                           <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete" placement="top">
+                        <IconButton
+                          color="error"
+                          size="small"
+                          sx={{
+                            "&:hover": { bgcolor: "error.light" },
+                          }}
+                          onClick={() => handleDeleteSaleProgram(row.id, row.name)}
+                        >
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       {row.isActive ? (
@@ -402,7 +430,7 @@ export default function TableSaleProgram() {
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[10, 25, 50]} // Fixed syntax: use array literal
+        rowsPerPageOptions={[10, 25, 50]}
         component="div"
         count={filteredData.length}
         rowsPerPage={rowsPerPage}
@@ -410,7 +438,7 @@ export default function TableSaleProgram() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         sx={{
-          backgroundColor: "#f9f9f9", // camelCase, valid CSS property
+          backgroundColor: "#f9f9f9",
           borderTop: "1px solid #e0e0e0",
         }}
       />
