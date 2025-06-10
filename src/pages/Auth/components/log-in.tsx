@@ -70,7 +70,7 @@ const Login: React.FC = () => {
           Chào mừng bạn ghé thăm
         </h1>
         <h2 className="text-3xl font-bold text-center text-red-700 mb-6">
-          COME HOME
+          SRING HOME
         </h2>
         <p className="text-center text-gray-600 mb-4">
           Hãy nhập thông tin của bạn

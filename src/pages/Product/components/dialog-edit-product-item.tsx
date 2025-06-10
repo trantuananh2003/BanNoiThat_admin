@@ -4,13 +4,15 @@ import {
   Button,
   Card,
   CardContent,
+  DialogContent,
   Dialog,
   DialogActions,
-  DialogContent,
   DialogTitle,
   InputLabel,
   TextField,
   Typography,
+  Autocomplete,
+  Chip,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import clientAPI from "../../../client-api/rest-client";
@@ -32,6 +34,7 @@ interface ProductItem {
   modelUrl?: string;
   modelFile?: any;
   isDelete?: boolean;
+  colors?: string[];
 }
 
 interface DialogEditProductItemProps {
@@ -40,6 +43,18 @@ interface DialogEditProductItemProps {
   onClose: () => void;
   setRefresh: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+const colorOptions = [
+  { label: "Đen", value: "black", bgColor: "#000000" },
+  { label: "Trắng", value: "white", bgColor: "#FFFFFF" },
+  { label: "Hồng", value: "pink", bgColor: "#FF69B4" },
+  { label: "Xám", value: "gray", bgColor: "#808080" },
+  { label: "Vàng", value: "yellow", bgColor: "#FFFF00" },
+  { label: "Xanh lá", value: "green", bgColor: "#008000" },
+  { label: "Xanh dương", value: "blue", bgColor: "#0000FF" },
+  { label: "Màu be", value: "beige", bgColor: "#F5F5DC" },
+  { label: "Màu nâu", value: "brown", bgColor: "#8B4513" },
+];
 
 export default function DialogEditProductItem({
   id,
@@ -57,7 +72,11 @@ export default function DialogEditProductItem({
           result: { productItems: ProductItem[] };
         };
         if (productData.result.productItems) {
-          setProductItems(productData.result.productItems);
+          const itemsWithColors = productData.result.productItems.map(item => ({
+            ...item,
+            colors: item.colors || []
+          }));
+          setProductItems(itemsWithColors);
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -72,6 +91,7 @@ export default function DialogEditProductItem({
     e.preventDefault();
     const formData = new FormData();
 
+    // Prepare formData for product items update
     productItems.forEach((item, index) => {
       formData.append(`items[${index}].id`, item.id ? item.id.toString() : "");
       formData.append(`items[${index}].nameOption`, item.nameOption);
@@ -87,28 +107,39 @@ export default function DialogEditProductItem({
         `items[${index}].isDelete`,
         item.isDelete ? item.isDelete.toString() : "false"
       );
+      if (item.colors && item.colors.length > 0) {
+        formData.append(`items[${index}].Colors`, item.colors.join(" "));
+      }
       if (item.imageProductItem) {
         formData.append(
           `items[${index}].imageProductItem`,
           item.imageProductItem
         );
       }
-      if (item.modelFile) {
-        formData.append(
-          `items[${index}].modelFile`,
-          item.modelFile
-        );
-      }
     });
 
     try {
+      // First API call: Update product items
       await clientAPI.service("products").put(`${id}/product-items`, formData);
-      toast.success("Product items updated successfully!");
+
+      // Second API call: Upload .glb model files for each product item
+      for (const [index, item] of productItems.entries()) {
+        if (item.modelFile && item.modelFile.name.endsWith(".glb") && item.id) {
+          const modelFormData = new FormData();
+          modelFormData.append("model3DFile", item.modelFile);
+          await clientAPI.service("product-items").put(
+            `${item.id}/model`,
+            modelFormData
+          );
+        }
+      }
+
+      toast.success("Product items and models updated successfully!");
       setRefresh((prev) => !prev);
       onClose();
     } catch (error) {
       console.error("Error submitting:", error);
-      toast.error("Failed to update product items. Please try again.");
+      toast.error("Failed to update product items or models. Please try again.");
     }
   };
 
@@ -187,6 +218,16 @@ export default function DialogEditProductItem({
     }
   };
 
+  const handleColorChange = (index: number, newValue: typeof colorOptions) => {
+    setProductItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, colors: newValue.map(color => color.value) }
+          : item
+      )
+    );
+  };
+
   const addProductItem = () => {
     setProductItems((prev) => [
       ...prev,
@@ -203,6 +244,7 @@ export default function DialogEditProductItem({
         weight: 0,
         imageProductItem: null,
         modelFile: null,
+        colors: [],
       },
     ]);
   };
@@ -318,6 +360,38 @@ export default function DialogEditProductItem({
                   onChange={(e) => handleChange(index, e)}
                 />
 
+                <Autocomplete
+                  multiple
+                  options={colorOptions}
+                  getOptionLabel={(option) => option.label}
+                  value={colorOptions.filter(option => item.colors?.includes(option.value))}
+                  onChange={(event, newValue) => handleColorChange(index, newValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="standard"
+                      label="Màu sắc"
+                      margin="dense"
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, idx) => (
+                      <Chip
+                        label={option.label}
+                        {...getTagProps({ index: idx })}
+                        sx={{
+                          backgroundColor: option.bgColor,
+                          color: ["white", "yellow", "beige"].includes(option.value)
+                            ? "#000000"
+                            : "#FFFFFF",
+                          m: 0.5,
+                        }}
+                      />
+                    ))
+                  }
+                  sx={{ mt: 1 }}
+                />
+
                 <TextField
                   fullWidth
                   margin="dense"
@@ -398,14 +472,14 @@ export default function DialogEditProductItem({
                     <input
                       type="file"
                       hidden
-                      accept=".glb,.gltf,.obj,.fbx"
+                      accept=".glb"
                       onChange={(e) => handleModelChange(index, e)}
                     />
                   </Button>
                   {item.modelUrl && (
                     <Box mt={2}>
                       <Typography variant="body2">
-                        Mô hình: {item.modelFile?.name || "Đã chọn"}
+                        Mô hình: {item.modelFile?.name || "Đã được lưu"}
                       </Typography>
                     </Box>
                   )}

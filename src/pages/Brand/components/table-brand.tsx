@@ -1,16 +1,12 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Button,
-  FormControl,
   IconButton,
   InputAdornment,
-  InputLabel,
   MenuItem,
   Paper,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -28,6 +24,8 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import DialogCreateBrand from "./dialog-create-brand";
 import DialogEditBrand from "./dialog-edit-brand";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Column {
   id: "name" | "slug";
@@ -48,21 +46,19 @@ interface Brand {
   slug: string;
 }
 
-export default function TableBrandExample() {
+export default function TableBrand() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [data, setData] = useState<Brand[]>([]);
   const [editId, setEditId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [openDialogCreateBrand, setOpenDialogCreateBrand] =
-    React.useState(false);
+  const [openDialogCreateBrand, setOpenDialogCreateBrand] = useState(false);
+  const [openDialogEditBrand, setOpenDialogEditBrand] = useState(false);
   const [refresh, setRefresh] = useState(false);
+
   const handleClickOpenDialogCreateBrand = () => {
     setOpenDialogCreateBrand(true);
   };
-
-  const [openDialogEditBrand, setOpenDialogEditBrand] = React.useState(false);
 
   const handleClickOpenDialogEditBrand = (id: string) => {
     setEditId(id);
@@ -77,6 +73,7 @@ export default function TableBrandExample() {
           .find();
         setData(response.result);
       } catch (error) {
+        toast.error("Failed to fetch brands");
         console.error("Error fetching brands:", error);
       }
     };
@@ -94,27 +91,28 @@ export default function TableBrandExample() {
     setPage(0);
   };
 
-  const handleEdit = (id: string) => {
-    setEditId(id);
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this brand?");
+    if (!confirmDelete) return;
+
+    try {
+      await clientAPI.service("brands").remove(id);
+      toast.success("Brand deleted successfully");
+      setRefresh((prev) => !prev);
+    } catch (error: any) {
+      console.log(error);
+      const message = error?.response?.data?.errorMessages[0] || "Failed to delete brand";
+      toast.error(message);
+    }
   };
 
   const filteredData = data.filter((brand) => {
-    const matchesSearch = brand.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === "all" || brand.slug === filter;
-    return matchesSearch && matchesFilter;
+    return brand.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
-    <Paper
-      sx={{
-        width: "100%",
-        overflow: "hidden",
-        borderRadius: 3,
-        boxShadow: 5,
-      }}
-    >
+    <Paper sx={{ width: "100%", overflow: "hidden", borderRadius: 3, boxShadow: 5 }}>
+      <ToastContainer />
       <Toolbar
         sx={{
           display: "flex",
@@ -139,26 +137,8 @@ export default function TableBrandExample() {
               ),
             }}
           />
-          {/* <FormControl size="small">
-            <InputLabel>Slug</InputLabel>
-            <Select
-              value={filter}
-              label="Slug"
-              onChange={(e) => setFilter(e.target.value)}
-              sx={{ minWidth: 120 }}
-            >
-              <MenuItem value="all">All</MenuItem>
-              {Array.from(new Set(data.map((item) => item.slug))).map(
-                (slug) => (
-                  <MenuItem key={slug} value={slug}>
-                    {slug}
-                  </MenuItem>
-                )
-              )}
-            </Select>
-          </FormControl> */}
         </Stack>
-        <Button onClick={() => handleClickOpenDialogCreateBrand()}>
+        <Button onClick={handleClickOpenDialogCreateBrand}>
           CREATE NEW BRAND
         </Button>
         <DialogCreateBrand
@@ -225,11 +205,11 @@ export default function TableBrandExample() {
                         <IconButton
                           color="primary"
                           size="small"
+                          onClick={() => handleClickOpenDialogEditBrand(row.id)}
                           sx={{
                             bgcolor: "",
                             "&:hover": { bgcolor: "primary.light" },
                           }}
-                          onClick={() => handleClickOpenDialogEditBrand(row.id)}
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -238,6 +218,7 @@ export default function TableBrandExample() {
                         <IconButton
                           color="error"
                           size="small"
+                          onClick={() => handleDelete(row.id)}
                           sx={{
                             bgcolor: "",
                             "&:hover": { bgcolor: "error.light" },
