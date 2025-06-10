@@ -31,6 +31,7 @@ import {
 import clientAPI from "client-api/rest-client";
 import DialogCreateCategory from "./dialog-create-category";
 import DialogEditCategory from "./dialog-edit-category";
+import { toast, ToastContainer } from "react-toastify";
 
 interface Column {
   id: "id" | "name" | "categoryUrlImage" | "slug"; //| "parent_Id";
@@ -72,6 +73,21 @@ function Row({
     setOpenDialogCreateCategory(true);
   };
   const [editId, setEditId] = useState("");
+
+  const handleDelete = async (id: string) => {
+      const confirmDelete = window.confirm("Are you sure you want to delete this category?");
+      if (!confirmDelete) return;
+
+      try {
+        await clientAPI.service("categories").remove(id);
+        toast.success("Category deleted successfully");
+        setRefresh((prev) => !prev);
+      } catch (error: any) {
+        console.log(error);
+        const message = error?.response?.data?.errorMessages[0] || "Failed to delete category";
+        toast.error(message);
+      }
+    };
 
   const [openDialogEditCategory, setOpenDialogEditCategory] = useState(false);
   const handleClickOpenDialogEditCategory = (id: string) => {
@@ -155,7 +171,7 @@ function Row({
               setRefresh={setRefresh}
             />
             <Tooltip title="Delete">
-              <IconButton color="error" size="small">
+              <IconButton color="error" size="small" onClick={() => handleDelete(row.id)}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
             </Tooltip>

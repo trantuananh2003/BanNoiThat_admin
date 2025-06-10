@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { format } from "date-fns";
 import DialogConfirmOrder from "./dialog-confirm-order";
+import { toast, ToastContainer } from "react-toastify";
 
 const OrderPage = () => {
   const [activeTab, setActiveTab] = useState("Processing");
@@ -75,6 +76,18 @@ const OrderPage = () => {
     setOpenDialogConfirmOrder(true);
   };
 
+  const handleCreateOrderGHN = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to create order GHN?");
+    if (!confirmDelete) return;
+    try {
+      await clientAPI.service(`Orders/${id}/create-order-ghn`).create("");
+      toast.success("Create order GHN successfully");
+      LoadOrders();
+    }
+    catch(error) {
+      toast.error("Failed to create order GHN");
+    }
+  }
   return (
     <Box
       sx={{ width: "100%", overflow: "hidden", borderRadius: 3, boxShadow: 5 }}
@@ -176,13 +189,13 @@ const OrderPage = () => {
                           </Typography>
                         </Grid>
                         <Grid>
-                          <Typography color="orange">{item.price} đ</Typography>
+                          <Typography color="orange">{Number(item.price).toLocaleString("vi-VN")} đ</Typography>
                         </Grid>
                       </Grid>
                     ))}
 
                     <Typography fontWeight="bold">
-                      Tổng tiền hóa đơn: {order.totalPrice} đ
+                      Tổng tiền hóa đơn: {Number(order.totalPrice).toLocaleString("vi-VN")} đ
                     </Typography>
                     <Typography fontWeight="bold">
                       Địa chỉ nhận hàng: {order.shippingAddress}
@@ -197,6 +210,7 @@ const OrderPage = () => {
                       justifyContent="flex-end"
                       gap={2}
                     >
+
                       <Button
                         variant="contained"
                         color="success"
@@ -206,7 +220,13 @@ const OrderPage = () => {
                       >
                         Xác nhận
                       </Button>
-
+                        <Button
+                        variant="contained"
+                        color="warning"
+                        onClick={() => handleCreateOrderGHN(order.id)}
+                      >
+                        Tạo đơn GHN
+                      </Button>
                       <Button
                         variant="contained"
                         color="error"

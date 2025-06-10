@@ -26,31 +26,31 @@ export default function IconBreadcrumbs() {
 
   switch (location.pathname) {
     case "/admin/brands":
-      path = "Brands";
+      path = "Brand";
       icon = <LocalOfferIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/categories":
-      path = "Categories";
+      path = "Category";
       icon = <CategoryIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/products":
-      path = "Products";
+      path = "Product";
       icon = <StorageIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/orders":
-      path = "Orders";
+      path = "Order";
       icon = <ShoppingCartIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/users":
-      path = "Users";
+      path = "User";
       icon = <PeopleAltIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/roles":
-      path = "Roles";
+      path = "Role";
       icon = <EngineeringIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
       case "/admin/salePrograms":
-      path = "Sale Programs";
+      path = "Sale Program";
       icon = <RedeemIcon sx={{ mr: 0.5 }} fontSize="inherit" />;
       break;
     case "/admin/analysis":
