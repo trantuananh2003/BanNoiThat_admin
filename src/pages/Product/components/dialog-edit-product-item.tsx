@@ -52,8 +52,9 @@ const colorOptions = [
   { label: "Vàng", value: "yellow", bgColor: "#FFFF00" },
   { label: "Xanh lá", value: "green", bgColor: "#008000" },
   { label: "Xanh dương", value: "blue", bgColor: "#0000FF" },
-  { label: "Màu be", value: "beige", bgColor: "#F5F5DC" },
-  { label: "Màu nâu", value: "brown", bgColor: "#8B4513" },
+  { label: "Be", value: "beige", bgColor: "#F5F5DC" },
+  { label: "Nâu", value: "brown", bgColor: "#8B4513" },
+  { label: "Tím", value: "purple", bgColor: "#800080"},
 ];
 
 export default function DialogEditProductItem({
@@ -72,10 +73,12 @@ export default function DialogEditProductItem({
           result: { productItems: ProductItem[] };
         };
         if (productData.result.productItems) {
-          const itemsWithColors = productData.result.productItems.map(item => ({
-            ...item,
-            colors: item.colors || []
-          }));
+          const itemsWithColors = productData.result.productItems.map(
+            (item) => ({
+              ...item,
+              colors: item.colors || [], // Ensure colors is always an array
+            })
+          );
           setProductItems(itemsWithColors);
         }
       } catch (error) {
@@ -99,15 +102,24 @@ export default function DialogEditProductItem({
       formData.append(`items[${index}].price`, item.price.toString());
       formData.append(`items[${index}].salePrice`, item.salePrice.toString());
       formData.append(`items[${index}].sku`, item.sku);
-      formData.append(`items[${index}].lengthSize`, item.lengthSize?.toString() || "0");
-      formData.append(`items[${index}].widthSize`, item.widthSize?.toString() || "0");
-      formData.append(`items[${index}].heightSize`, item.heightSize?.toString() || "0");
+      formData.append(
+        `items[${index}].lengthSize`,
+        item.lengthSize?.toString() || "0"
+      );
+      formData.append(
+        `items[${index}].widthSize`,
+        item.widthSize?.toString() || "0"
+      );
+      formData.append(
+        `items[${index}].heightSize`,
+        item.heightSize?.toString() || "0"
+      );
       formData.append(`items[${index}].weight`, item.weight?.toString() || "0");
       formData.append(
         `items[${index}].isDelete`,
         item.isDelete ? item.isDelete.toString() : "false"
       );
-      if (item.colors && item.colors.length > 0) {
+      if (Array.isArray(item.colors) && item.colors.length > 0) {
         formData.append(`items[${index}].Colors`, item.colors.join(" "));
       }
       if (item.imageProductItem) {
@@ -127,10 +139,9 @@ export default function DialogEditProductItem({
         if (item.modelFile && item.modelFile.name.endsWith(".glb") && item.id) {
           const modelFormData = new FormData();
           modelFormData.append("model3DFile", item.modelFile);
-          await clientAPI.service("product-items").put(
-            `${item.id}/model`,
-            modelFormData
-          );
+          await clientAPI
+            .service("product-items")
+            .put(`${item.id}/model`, modelFormData);
         }
       }
 
@@ -139,7 +150,9 @@ export default function DialogEditProductItem({
       onClose();
     } catch (error) {
       console.error("Error submitting:", error);
-      toast.error("Failed to update product items or models. Please try again.");
+      toast.error(
+        "Failed to update product items or models. Please try again."
+      );
     }
   };
 
@@ -222,7 +235,7 @@ export default function DialogEditProductItem({
     setProductItems((prev) =>
       prev.map((item, i) =>
         i === index
-          ? { ...item, colors: newValue.map(color => color.value) }
+          ? { ...item, colors: newValue.map((color) => color.value) }
           : item
       )
     );
@@ -364,8 +377,12 @@ export default function DialogEditProductItem({
                   multiple
                   options={colorOptions}
                   getOptionLabel={(option) => option.label}
-                  value={colorOptions.filter(option => item.colors?.includes(option.value))}
-                  onChange={(event, newValue) => handleColorChange(index, newValue)}
+                  value={colorOptions.filter((option) =>
+                    item.colors?.includes(option.value)
+                  )}
+                  onChange={(event, newValue) =>
+                    handleColorChange(index, newValue)
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -381,7 +398,9 @@ export default function DialogEditProductItem({
                         {...getTagProps({ index: idx })}
                         sx={{
                           backgroundColor: option.bgColor,
-                          color: ["white", "yellow", "beige"].includes(option.value)
+                          color: ["white", "yellow", "beige"].includes(
+                            option.value
+                          )
                             ? "#000000"
                             : "#FFFFFF",
                           m: 0.5,
