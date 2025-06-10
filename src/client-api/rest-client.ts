@@ -244,15 +244,11 @@ class RestClient {
     }
   }
 
-  async patchEachProperty<T>(
-    objectId: string,
-    property: string,
-    data: any
-  ): Promise<T> {
+  async patchEachProperty<T>(objectId: string, data?: any): Promise<T> {
     try {
       const isFormData = data instanceof FormData;
       const response = await this.axiosInstance.patch<T>(
-        `/${this.path}/${objectId}/${property}`,
+        `/${this.path}/${objectId}`,
         data,
         {
           headers: {
@@ -295,6 +291,6 @@ class RestClient {
 }
 
 // Khởi tạo clientAPI với baseURL là localhost:7000
-const clientAPI = new RestClient().config("https://localhost:7000/api");
+const clientAPI = new RestClient().config(process.env.REACT_APP_BACKEND ?? "");
 
 export default clientAPI;

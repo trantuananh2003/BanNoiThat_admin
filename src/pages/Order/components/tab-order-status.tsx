@@ -17,6 +17,7 @@ import {
 import { format } from "date-fns";
 import DialogConfirmOrder from "./dialog-confirm-order";
 import { toast, ToastContainer } from "react-toastify";
+import Swal from "sweetalert2";
 
 const OrderPage = () => {
   const [activeTab, setActiveTab] = useState("Processing");
@@ -54,6 +55,36 @@ const OrderPage = () => {
     )
   );
 
+  const triggerCancelOrder = async (orderId: string) => {
+    const result = await Swal.fire({
+      title: "Xác nhận hủy đơn hàng",
+      text: "Bạn có chắc chắn muốn hủy đơn hàng này không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Hủy đơn",
+      cancelButtonText: "Quay lại",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response: ApiResponse = await clientAPI
+          .service("orders/cancelOrder")
+          .patchEachProperty(orderId);
+
+        if (response.isSuccess) {
+          Swal.fire("Đã hủy!", "Đơn hàng của bạn đã được hủy.", "success");
+          LoadOrders();
+        } else {
+          Swal.fire("Lỗi!", "Không thể hủy đơn hàng. Vui lòng thử lại.", "error");
+        }
+      } catch (error) {
+        Swal.fire("Lỗi!", "Không thể kết nối đến máy chủ.", "error");
+      }
+    }
+  };
+
   const triggerUpdateStatusOrder = async (
     orderId: string,
     orderStatus: string
@@ -62,11 +93,12 @@ const OrderPage = () => {
     formData.append("orderStatus", orderStatus);
     const response: ApiResponse = await clientAPI
       .service("orders")
-      .patchEachProperty(orderId, "orderStatus", formData);
+      .patchEachProperty(orderId, "orderStatus");
     if (response.isSuccess) {
       LoadOrders();
     }
   };
+
 
   const [openDialogConfirmOrder, setOpenDialogConfirmOrder] =
     React.useState(false);
@@ -84,10 +116,21 @@ const OrderPage = () => {
       toast.success("Create order GHN successfully");
       LoadOrders();
     }
-    catch(error) {
+    catch (error) {
       toast.error("Failed to create order GHN");
     }
   }
+
+  const triggerShowInfoOrder = async (orderId: string) => {
+    try {
+      var data: ApiResponse = await clientAPI.service(`orders/${orderId}`).find();
+
+      toast.success(`Đơn vị vận chuyển: ${data.result?.transferService} Mã vận đơn: ${data.result?.addressCode}`);
+    } catch (e) {
+
+    }
+  }
+
   return (
     <Box
       sx={{ width: "100%", overflow: "hidden", borderRadius: 3, boxShadow: 5 }}
@@ -152,9 +195,9 @@ const OrderPage = () => {
                         <Typography component="span" color="primary">
                           {order?.orderPaidTime
                             ? format(
-                                new Date(order?.orderPaidTime),
-                                "dd/MM/yyyy"
-                              )
+                              new Date(order?.orderPaidTime),
+                              "dd/MM/yyyy"
+                            )
                             : "Chưa có thông tin"}
                         </Typography>
                       </Typography>
@@ -204,40 +247,43 @@ const OrderPage = () => {
 
                   {(order.orderStatus === "Pending" ||
                     order.orderStatus === "Processing") && (
-                    <Box
-                      mt={2}
-                      display="flex"
-                      justifyContent="flex-end"
-                      gap={2}
-                    >
+                      <Box
+                        mt={2}
+                        display="flex"
+                        justifyContent="flex-end"
+                        gap={2}
+                      >
 
-                      <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() =>
-                          handleClickOpenDialogConfirmOrder(order.id)
-                        }
-                      >
-                        Xác nhận
-                      </Button>
                         <Button
-                        variant="contained"
-                        color="warning"
-                        onClick={() => handleCreateOrderGHN(order.id)}
-                      >
-                        Tạo đơn GHN
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() =>
-                          triggerUpdateStatusOrder(order.id, "Cancelled")
-                        }
-                      >
-                        Hủy đơn
-                      </Button>
-                    </Box>
-                  )}
+                          variant="contained"
+                          color="success"
+                          onClick={() =>
+                            handleClickOpenDialogConfirmOrder(order.id)
+                          }
+                        >
+                          Xác nhận
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          onClick={() => handleCreateOrderGHN(order.id)}
+                        >
+                          Tạo đơn GHN
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          onClick={() => triggerCancelOrder(order.id)}
+                        >
+                          Hủy đơn
+                        </Button>
+                      </Box>
+                    )}
+                  {
+                    activeTab === "Shipping" && (<div className="flex justify-end">
+                      <button className="bg-green-800 rounded-md px-2 py-1 text-white" onClick={() => triggerShowInfoOrder(order.id)}>Xem thông tin vẫn chuyển</button>
+                    </div>)
+                  }
                 </CardContent>
               </Card>
             ))
@@ -249,7 +295,7 @@ const OrderPage = () => {
         openDialogConfirmOrder={openDialogConfirmOrder}
         onClose={() => setOpenDialogConfirmOrder(false)}
       />
-    </Box>
+    </Box >
   );
 };
 
