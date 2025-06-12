@@ -31,7 +31,7 @@ import { toast } from "react-toastify";
 import DialogSetRoleUser from "./dialog-set-role-user";
 
 interface Column {
-  id: "id" | "fullName" | "email" | "role_Id" | "isBlocked";
+  id: "id" | "fullName" | "email" | "roleName" | "isBlocked";
   label: string;
   minWidth?: number;
   align?: "right";
@@ -42,7 +42,7 @@ const columns: readonly Column[] = [
   { id: "id", label: "ID", minWidth: 170 },
   { id: "fullName", label: "Full Name", minWidth: 100 },
   { id: "email", label: "Email", minWidth: 100 },
-  { id: "role_Id", label: "Role", minWidth: 100 },
+  { id: "roleName", label: "Role", minWidth: 100 },
 ];
 
 interface User {
@@ -51,6 +51,7 @@ interface User {
   email: string;
   isMale: string;
   role_Id: string;
+  roleName: string;
   birthday: string;
   isBlocked: boolean;
 }
