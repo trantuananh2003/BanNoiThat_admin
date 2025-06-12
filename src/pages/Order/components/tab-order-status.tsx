@@ -281,7 +281,7 @@ const OrderPage = () => {
                     )}
                   {
                     activeTab === "Shipping" && (<div className="flex justify-end">
-                      <button className="bg-green-800 rounded-md px-2 py-1 text-white" onClick={() => triggerShowInfoOrder(order.id)}>Xem thông tin vẫn chuyển</button>
+                      <button className="bg-green-800 rounded-md px-2 py-1 text-white" onClick={() => triggerShowInfoOrder(order.id)}>Xem thông tin vận chuyển</button>
                     </div>)
                   }
                 </CardContent>

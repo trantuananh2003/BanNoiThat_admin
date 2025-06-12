@@ -247,7 +247,7 @@ function Row({
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Delete">
-                              <IconButton color="error" size="small">
+                              <IconButton color="error" size="small" onClick = {() => handleDelete(child.id)}>
                                 <DeleteIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -310,21 +310,8 @@ export default function TableCategoryWithCollapse() {
     <Paper
       sx={{ width: "100%", overflow: "hidden", borderRadius: 3, boxShadow: 5 }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 2 }}>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Search by category name"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
+      <Toolbar sx={{ display: "flex", justifyContent: "flex-end", px: 2 }}>
+        
         <Button onClick={() => handleClickOpenDialogCreateCategory()}>
           CREATE NEW CATEGORY
         </Button>
