@@ -26,7 +26,7 @@ const App = () => {
         <RouteTracker setUserPermissions={setUserPermissions} />
         <Routes>
           <Route path="/" element={<Auth />} />
-          <Route path="/unauthorized" element={<NotFound/>} />
+          <Route path="/unauthorized" element={<NotFound />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route
               path="brands"
@@ -70,7 +70,13 @@ const App = () => {
             />
             <Route
               path="users"
-              element={<User />} // Không cần bảo vệ nếu ai cũng truy cập được
+              element={
+                <ProtectedRoute
+                  element={<User />}
+                  requiredPermission="manage-user"
+                  userPermissions={userPermissions}
+                />
+              }
             />
             <Route
               path="roles"
