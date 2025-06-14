@@ -52,10 +52,10 @@ export default function DialogEditBrand({
 
     try {
       await clientAPI.service("Brands").put(id, formData);
-      toast.success("Brand updated successfully!");
       setBrandName("");
       setSlug("");
       setRefresh((prev) => !prev);
+      toast.success("Brand updated successfully!");
     } catch (error) {
       console.error("Error updating brand:", error);
       toast.error("Failed to update brand. Please try again.");

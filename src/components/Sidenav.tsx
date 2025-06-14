@@ -5,8 +5,8 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import MenuIcon from "@mui/icons-material/Menu";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import RedeemIcon from '@mui/icons-material/Redeem';
+import EngineeringIcon from "@mui/icons-material/Engineering";
+import RedeemIcon from "@mui/icons-material/Redeem";
 import StorageIcon from "@mui/icons-material/Storage";
 import { Avatar, Menu, MenuItem, Tooltip } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -24,10 +24,13 @@ import { CSSObject, styled, Theme } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import * as React from "react";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { emptyUserState, setUser } from "../redux/features/userSlice";
 import IconBreadcrumbs from "./ui/IconBreadcrumbs";
+import clientAPI from "client-api/rest-client";
+import { RootState } from "redux/store";
+import User from "model/User";
 const drawerWidth = 170;
 
 const NAVIGATION = [
@@ -36,48 +39,56 @@ const NAVIGATION = [
     icon: <LocalOfferIcon />,
     label: "Brand",
     route: "/admin/brands",
+    manageKey: "manage-brand",
   },
   {
     id: 1,
     icon: <CategoryIcon />,
     label: "Category",
     route: "/admin/categories",
+    manageKey: "manage-category",
   },
   {
     id: 2,
     icon: <StorageIcon />,
     label: "Product",
     route: "/admin/products",
+    manageKey: "manage-product",
   },
   {
     id: 3,
     icon: <ShoppingCartIcon />,
     label: "Order",
     route: "/admin/orders",
+    manageKey: "manage-order",
   },
   {
     id: 4,
     icon: <PeopleAltIcon />,
     label: "User",
     route: "/admin/users",
+    manageKey: "manage-user",
   },
   {
     id: 5,
     icon: <EngineeringIcon />,
     label: "Role",
     route: "/admin/roles",
+    manageKey: "manage-role",
   },
   {
     id: 6,
     icon: <RedeemIcon />,
     label: "Sale Program",
     route: "/admin/salePrograms",
+    manageKey: "manage-saleprogram",
   },
   {
     id: 7,
     icon: <AnalyticsIcon />,
     label: "Analysis",
     route: "/admin/analysis",
+    manageKey: "manage-analysis",
   },
 ];
 
@@ -192,7 +203,7 @@ export default function Sidenav() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
-
+  const userData: User = useSelector((state: RootState) => state.users);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const openAccountSettings = Boolean(anchorEl);
   const handleClickAccountSettings = (event: React.MouseEvent<HTMLElement>) => {
@@ -217,6 +228,18 @@ export default function Sidenav() {
     setOpen(false);
   };
 
+  const handleClickManagePage = async (route: string, manageKey: string) => {
+    let id = userData.user_id;
+    const response: { result: string[] } = await clientAPI
+      .service("Roles")
+      .get(`permission-user/${id}`);
+    if(response.result.includes(manageKey)) {
+      navigate(route);
+    }
+    else {
+      navigate("/unauthorized");
+    }
+  };
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -358,7 +381,7 @@ export default function Sidenav() {
               key={text.id}
               disablePadding
               sx={{ display: "block" }}
-              onClick={() => navigate(text.route)}
+              onClick={() => handleClickManagePage(text.route, text.manageKey)}
             >
               <Tooltip title={open ? "" : text.label} placement="right">
                 <ListItemButton

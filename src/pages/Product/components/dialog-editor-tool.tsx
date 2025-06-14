@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextStyle from "@tiptap/extension-text-style";
@@ -9,6 +9,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Heading from "@tiptap/extension-heading";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
+
 import FormatBoldIcon from "@mui/icons-material/FormatBold";
 import FormatItalicIcon from "@mui/icons-material/FormatItalic";
 import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
@@ -21,7 +22,7 @@ const extensions = [
   StarterKit.configure({
     bulletList: { keepMarks: true },
     orderedList: { keepMarks: true },
-    heading: false, // Tắt heading mặc định
+    heading: false,
   }),
   Underline,
   TextStyle,
@@ -50,6 +51,8 @@ export default function EditorDescription({
   onChange,
 }: EditorDescriptionProps) {
   const [htmlOutput, setHtmlOutput] = useState("");
+  const prevDescriptionRef = useRef<string>(description);
+  const editorRef = useRef<any>(null);
 
   const editor = useEditor({
     extensions,
@@ -82,19 +85,46 @@ export default function EditorDescription({
         }
         return false;
       },
+      // Add handleKeyDown to prevent cursor jumping on spacebar
+      handleKeyDown(view, event) {
+        if (event.key === " ") {
+          // Let Tiptap handle the spacebar naturally
+          return false;
+        }
+        return false;
+      },
     },
+    // Ensure editor maintains focus
+    autofocus: true,
   });
 
+  // Store editor instance in ref for manual focus control
   useEffect(() => {
-    if (editor) {
-      console.log("Editor initialized:", editor);
-      editor.commands.setContent(description);
-      editor.on("update", () => {
-        console.log("Editor JSON:", editor.getJSON());
-        console.log("Editor HTML:", editor.getHTML());
+    editorRef.current = editor;
+  }, [editor]);
+
+  // Update editor content only when description prop changes
+  useEffect(() => {
+    if (!editor || description === prevDescriptionRef.current) return;
+
+    const currentHtml = editor.getHTML();
+    if (description !== currentHtml) {
+      // Store current cursor position
+      const { from, to } = editor.state.selection;
+
+      // Update content without losing focus
+      editor.commands.setContent(description, false, {
+        preserveWhitespace: true,
       });
-    } else {
-      console.log("Editor not initialized");
+
+      // Restore cursor position
+      try {
+        editor.commands.setTextSelection({ from, to });
+      } catch (e) {
+        console.warn("Failed to restore cursor position:", e);
+      }
+
+      prevDescriptionRef.current = description;
     }
   }, [editor, description]);
 
@@ -120,10 +150,7 @@ export default function EditorDescription({
         <Tooltip title="Bold">
           <button
             type="button"
-            onClick={() => {
-              console.log("Bold button clicked");
-              editor?.chain().focus().toggleBold().run();
-            }}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
             className={buttonStyle(editor?.isActive("bold") || false)}
           >
             <FormatBoldIcon />
@@ -133,10 +160,7 @@ export default function EditorDescription({
         <Tooltip title="Italic">
           <button
             type="button"
-            onClick={() => {
-              console.log("Italic button clicked");
-              editor?.chain().focus().toggleItalic().run();
-            }}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
             className={buttonStyle(editor?.isActive("italic") || false)}
           >
             <FormatItalicIcon />
@@ -146,10 +170,7 @@ export default function EditorDescription({
         <Tooltip title="Underline">
           <button
             type="button"
-            onClick={() => {
-              console.log("Underline button clicked");
-              editor?.chain().focus().toggleUnderline().run();
-            }}
+            onClick={() => editor?.chain().focus().toggleUnderline().run()}
             className={buttonStyle(editor?.isActive("underline") || false)}
           >
             <FormatUnderlinedIcon />
@@ -159,13 +180,8 @@ export default function EditorDescription({
         <Tooltip title="Align Left">
           <button
             type="button"
-            onClick={() => {
-              console.log("Align Left button clicked");
-              editor?.chain().focus().setTextAlign("left").run();
-            }}
-            className={buttonStyle(
-              editor?.isActive({ textAlign: "left" }) || false
-            )}
+            onClick={() => editor?.chain().focus().setTextAlign("left").run()}
+            className={buttonStyle(editor?.isActive({ textAlign: "left" }) || false)}
           >
             <FormatAlignLeftIcon />
           </button>
@@ -174,13 +190,8 @@ export default function EditorDescription({
         <Tooltip title="Align Center">
           <button
             type="button"
-            onClick={() => {
-              console.log("Align Center button clicked");
-              editor?.chain().focus().setTextAlign("center").run();
-            }}
-            className={buttonStyle(
-              editor?.isActive({ textAlign: "center" }) || false
-            )}
+            onClick={() => editor?.chain().focus().setTextAlign("center").run()}
+            className={buttonStyle(editor?.isActive({ textAlign: "center" }) || false)}
           >
             <FormatAlignCenterIcon />
           </button>
@@ -189,82 +200,10 @@ export default function EditorDescription({
         <Tooltip title="Align Right">
           <button
             type="button"
-            onClick={() => {
-              console.log("Align Right button clicked");
-              editor?.chain().focus().setTextAlign("right").run();
-            }}
-            className={buttonStyle(
-              editor?.isActive({ textAlign: "right" }) || false
-            )}
+            onClick={() => editor?.chain().focus().setTextAlign("right").run()}
+            className={buttonStyle(editor?.isActive({ textAlign: "right" }) || false)}
           >
             <FormatAlignRightIcon />
-          </button>
-        </Tooltip>
-
-        <Tooltip title="Paragraph">
-          <button
-            type="button"
-            onClick={() => {
-              console.log("Paragraph button clicked");
-              editor?.chain().focus().setParagraph().run();
-            }}
-            className={buttonStyle(editor?.isActive("paragraph") || false)}
-          >
-            P
-          </button>
-        </Tooltip>
-
-        <Tooltip title="Heading 1">
-          <button
-            type="button"
-            onClick={() => {
-              console.log("H1 button clicked");
-              if (editor) {
-                editor.chain().focus().setHeading({ level: 1 }).run();
-                console.log("H1 applied:", editor.isActive("heading", { level: 1 }));
-              }
-            }}
-            className={buttonStyle(
-              editor?.isActive("heading", { level: 1 }) || false
-            )}
-          >
-            H1
-          </button>
-        </Tooltip>
-
-        <Tooltip title="Heading 2">
-          <button
-            type="button"
-            onClick={() => {
-              console.log("H2 button clicked");
-              if (editor) {
-                editor.chain().focus().setHeading({ level: 2 }).run();
-                console.log("H2 applied:", editor.isActive("heading", { level: 2 }));
-              }
-            }}
-            className={buttonStyle(
-              editor?.isActive("heading", { level: 2 }) || false
-            )}
-          >
-            H2
-          </button>
-        </Tooltip>
-
-        <Tooltip title="Heading 3">
-          <button
-            type="button"
-            onClick={() => {
-              console.log("H3 button clicked");
-              if (editor) {
-                editor.chain().focus().setHeading({ level: 3 }).run();
-                console.log("H3 applied:", editor.isActive("heading", { level: 3 }));
-              }
-            }}
-            className={buttonStyle(
-              editor?.isActive("heading", { level: 3 }) || false
-            )}
-          >
-            H3
           </button>
         </Tooltip>
       </div>

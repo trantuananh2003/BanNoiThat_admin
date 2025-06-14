@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       // Lưu thông tin người dùng và token vào localStorage
       //localStorage.setItem('user', JSON.stringify(data)); 
       localStorage.setItem("userToken", data.result.token); 
-
+      
       navigate(`/admin`);
     } catch (error: any) {
       if (error.response) {
