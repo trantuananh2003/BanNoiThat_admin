@@ -99,7 +99,6 @@ const OrderPage = () => {
     }
   };
 
-
   const [openDialogConfirmOrder, setOpenDialogConfirmOrder] =
     React.useState(false);
 
@@ -108,18 +107,7 @@ const OrderPage = () => {
     setOpenDialogConfirmOrder(true);
   };
 
-  const handleCreateOrderGHN = async (id: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to create order GHN?");
-    if (!confirmDelete) return;
-    try {
-      await clientAPI.service(`Orders/${id}/create-order-ghn`).create("");
-      toast.success("Create order GHN successfully");
-      LoadOrders();
-    }
-    catch (error) {
-      toast.error("Failed to create order GHN");
-    }
-  }
+
 
   const triggerShowInfoOrder = async (orderId: string) => {
     try {
