@@ -233,11 +233,8 @@ export default function Sidenav() {
     const response: { result: string[] } = await clientAPI
       .service("Roles")
       .get(`permission-user/${id}`);
-    if(response.result.includes(manageKey)) {
+    if (response.result.includes(manageKey)) {
       navigate(route);
-    }
-    else {
-      navigate("/unauthorized");
     }
   };
   return (
@@ -275,7 +272,7 @@ export default function Sidenav() {
               aria-expanded={open ? "true" : undefined}
             >
               <Avatar
-                //{...stringAvatar("Phat Nguyen")}
+                //{...stringAvatar(email.toString())}
                 sx={{
                   width: 36,
                   height: 36,
