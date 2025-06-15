@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import clientAPI from "../../../client-api/rest-client";
 import { useNavigate } from "react-router-dom";
+import ApiResponse from "model/ApiResponse";
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
+import { setUser } from "../../../redux/features/userSlice";
+import { useDispatch } from "react-redux";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +16,8 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errAccount, setErrAccount] = useState("");
   const [errPassword, setErrPassword] = useState("");
+  const dispatch = useDispatch();
+
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
@@ -62,7 +69,21 @@ const Login: React.FC = () => {
       setLoading(false);
     }
   };
+  const handleSuccessLoginGoogle = async (response: any) => {
+    try {
+      const formData = new FormData();
+      formData.append("TokenId", response?.credential);
+      let data: ApiResponse = await clientAPI.service("auth/login-google").create(formData);
+      localStorage.setItem("userToken", data?.result?.token);
 
+      dispatch(setUser(data.result));
+      if (data.isSuccess) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return (
     <div className="min-h flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -132,14 +153,14 @@ const Login: React.FC = () => {
             )}
           </div>
 
-          <div className="text-right">
+          {/* <div className="text-right">
             <Link
               to="/forgot-password"
               className="text-sm text-gray-600 hover:underline"
             >
               Quên mật khẩu?
             </Link>
-          </div>
+          </div> */}
 
           <button
             onClick={handleLogin}
@@ -149,26 +170,23 @@ const Login: React.FC = () => {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
-          <div className="mt-4">
-            <p className="text-center text-gray-600">Hoặc đăng nhập bằng:</p>
-            <button
-              type="button"
-              className="w-full mt-2 p-2 border rounded-lg flex items-center justify-center gap-2"
-            >
-              <img
-                src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
-                alt="Google"
-                className="w-6 h-6"
+           <div className="mt-2 mx-auto text-center">
+            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ""}>
+              <GoogleLogin
+                onSuccess={handleSuccessLoginGoogle}
+                onError={() => {
+                  console.log('Login Failed');
+                }}
               />
-            </button>
+            </GoogleOAuthProvider>
           </div>
 
-          <div className="text-center mt-4">
+          {/* <div className="text-center mt-4">
             <span className="text-gray-600">Bạn chưa có tài khoản? </span>
             <Link to="/register" className="text-red-700 hover:underline">
               Hãy đăng ký ngay
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

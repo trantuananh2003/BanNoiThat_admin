@@ -18,7 +18,10 @@ import ProtectedRoute from "components/ProtectedRoute";
 import RouteTracker from "components/RouteTracker";
 import NotFound from "components/NotFound";
 const App = () => {
-  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>(() => {
+    const stored = localStorage.getItem("permissions");
+    return stored ? JSON.parse(stored) : [];
+  });
 
   return (
     <Provider store={store}>

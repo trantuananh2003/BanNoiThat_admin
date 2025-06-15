@@ -13,6 +13,7 @@ import {
   Typography,
   Autocomplete,
   Chip,
+  IconButton,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import clientAPI from "../../../client-api/rest-client";
@@ -34,7 +35,8 @@ interface ProductItem {
   modelUrl?: string;
   modelFile?: any;
   isDelete?: boolean;
-  colors?: string[];
+  colors?: string[] | string | null;
+  isHardDelete?: boolean;
 }
 
 interface DialogEditProductItemProps {
@@ -54,7 +56,7 @@ const colorOptions = [
   { label: "Xanh dương", value: "blue", bgColor: "#0000FF" },
   { label: "Be", value: "beige", bgColor: "#F5F5DC" },
   { label: "Nâu", value: "brown", bgColor: "#8B4513" },
-  { label: "Tím", value: "purple", bgColor: "#800080"},
+  { label: "Tím", value: "purple", bgColor: "#800080" },
 ];
 
 export default function DialogEditProductItem({
@@ -76,7 +78,7 @@ export default function DialogEditProductItem({
           const itemsWithColors = productData.result.productItems.map(
             (item) => ({
               ...item,
-              colors: item.colors || [], // Ensure colors is always an array
+              colors: item.colors || [],
             })
           );
           setProductItems(itemsWithColors);
@@ -94,7 +96,6 @@ export default function DialogEditProductItem({
     e.preventDefault();
     const formData = new FormData();
 
-    // Prepare formData for product items update
     productItems.forEach((item, index) => {
       formData.append(`items[${index}].id`, item.id ? item.id.toString() : "");
       formData.append(`items[${index}].nameOption`, item.nameOption);
@@ -119,8 +120,18 @@ export default function DialogEditProductItem({
         `items[${index}].isDelete`,
         item.isDelete ? item.isDelete.toString() : "false"
       );
-      if (Array.isArray(item.colors) && item.colors.length > 0) {
-        formData.append(`items[${index}].Colors`, item.colors.join(" "));
+      if (item.colors) {
+        let colorArray: string[] = [];
+
+        if (Array.isArray(item.colors)) {
+          colorArray = item.colors;
+        } else if (typeof item.colors === "string") {
+          colorArray = item.colors.split(" ");
+        }
+
+        if (colorArray.length > 0) {
+          formData.append(`items[${index}].Colors`, colorArray.join(" "));
+        }
       }
       if (item.imageProductItem) {
         formData.append(
@@ -258,6 +269,7 @@ export default function DialogEditProductItem({
         imageProductItem: null,
         modelFile: null,
         colors: [],
+        isHardDelete: true,
       },
     ]);
   };
@@ -268,6 +280,12 @@ export default function DialogEditProductItem({
         i === index ? { ...item, isDelete: !item.isDelete } : item
       )
     );
+  };
+
+  const deleteProductItemHard = (index: number) => {
+    const updated = [...productItems];
+    updated.splice(index, 1);
+    setProductItems(updated);
   };
 
   return (
@@ -312,6 +330,17 @@ export default function DialogEditProductItem({
                       </span>
                     )}
                   </Typography>
+                  {item.isHardDelete ? (
+                    <IconButton
+                      onClick={() => deleteProductItemHard(index)}
+                      size="small"
+                      sx={{ color: "#888" }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  ) : (
+                    <></>
+                  )}
                 </Box>
 
                 <TextField
@@ -447,7 +476,7 @@ export default function DialogEditProductItem({
                 <TextField
                   fullWidth
                   margin="dense"
-                  label="Trọng lượng (kg)"
+                  label="Trọng lượng (g)"
                   name="weight"
                   type="number"
                   variant="standard"
