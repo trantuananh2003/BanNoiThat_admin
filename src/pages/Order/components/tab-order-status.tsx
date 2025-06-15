@@ -115,8 +115,8 @@ const OrderPage = () => {
       toast.success("Create order GHN successfully");
       LoadOrders();
     }
-    catch (error) {
-      toast.error("Failed to create order GHN");
+    catch (error: any) {
+      toast.error(error?.response?.data?.errorMessages[0]);
     }
   }
 
@@ -124,9 +124,13 @@ const OrderPage = () => {
     try {
       var data: ApiResponse = await clientAPI.service(`orders/${orderId}`).find();
 
-      toast.success(`Đơn vị vận chuyển: ${data.result?.transferService} Mã vận đơn: ${data.result?.addressCode}`);
+      toast.success(
+        <div>
+          <strong>Đơn vị vận chuyển:</strong> {data.result?.transferService} <br />
+          <strong>Mã vận đơn:</strong> {data.result?.addressCode}
+        </div>
+      );
     } catch (e) {
-
     }
   }
 
