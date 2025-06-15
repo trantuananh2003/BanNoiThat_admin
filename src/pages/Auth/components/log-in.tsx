@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import clientAPI from "../../../client-api/rest-client";
 import { useNavigate } from "react-router-dom";
 import ApiResponse from "model/ApiResponse";
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import { setUser } from "../../../redux/features/userSlice";
 import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -14,10 +15,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errAccount, setErrAccount] = useState("");
-  const [errPassword, setErrPassword] = useState("");
   const dispatch = useDispatch();
-
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
@@ -40,30 +38,37 @@ const Login: React.FC = () => {
     }
   }, [navigate]);
   const handleLogin = async () => {
+    // Kiểm tra đầu vào trước khi gọi API
+    if (!account.trim() || !password.trim()) {
+      if (!account.trim()) {
+        toast.error("Vui lòng nhập Email hoặc Số điện thoại!");
+      }
+      if (!password.trim()) {
+        toast.error("Vui lòng nhập mật khẩu!");
+      }
+      return;
+    }
+
     setLoading(true);
-    setErrAccount("");
-    setErrPassword("");
+
     try {
       const data = await clientAPI
         .service("Auth/login")
         .authentication("local", account, password);
-      //const userRole = data?.data?.role;
-      // Lưu thông tin người dùng và token vào localStorage
-      //localStorage.setItem('user', JSON.stringify(data)); 
-      localStorage.setItem("userToken", data.result.token); 
-      
+
+      localStorage.setItem("userToken", data.result.token);
+      toast.success("Đăng nhập thành công!");
       navigate(`/admin`);
     } catch (error: any) {
       if (error.response) {
         const { data } = error.response;
-        if (data.errors) {
-          setErrAccount(data.errors.account || "");
-          setErrPassword(data.errors.password || "");
+        if (data) {
+          toast.error("Vui lòng kiểm tra lại tài khoản và mật khẩu!");
         } else {
-          console.error("Login error:", data.message);
+          toast.error(data || "Đã xảy ra lỗi khi đăng nhập!");
         }
       } else {
-        console.error("Login error:", error.message);
+        toast.error(error.message || "Không thể kết nối đến máy chủ!");
       }
     } finally {
       setLoading(false);
@@ -73,7 +78,9 @@ const Login: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("TokenId", response?.credential);
-      let data: ApiResponse = await clientAPI.service("auth/login-google").create(formData);
+      let data: ApiResponse = await clientAPI
+        .service("auth/login-google")
+        .create(formData);
       localStorage.setItem("userToken", data?.result?.token);
 
       dispatch(setUser(data.result));
@@ -83,7 +90,7 @@ const Login: React.FC = () => {
     } catch (error) {
       console.log(error);
     }
-  }
+  };
   return (
     <div className="min-h flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -91,7 +98,7 @@ const Login: React.FC = () => {
           Chào mừng bạn ghé thăm
         </h1>
         <h2 className="text-3xl font-bold text-center text-red-700 mb-6">
-          SRING HOME
+          SPRING HOME
         </h2>
         <p className="text-center text-gray-600 mb-4">
           Hãy nhập thông tin của bạn
@@ -117,9 +124,6 @@ const Login: React.FC = () => {
                 className="w-full px-4 py-2 pl-10 border rounded-md focus:ring focus:ring-red-300 focus:outline-none"
               />
             </div>
-            {errAccount && (
-              <p className="text-red-500 text-sm mt-1">{errAccount}</p>
-            )}
           </div>
 
           <div>
@@ -148,9 +152,6 @@ const Login: React.FC = () => {
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
-            {errPassword && (
-              <p className="text-red-500 text-sm mt-1">{errPassword}</p>
-            )}
           </div>
 
           {/* <div className="text-right">
@@ -170,12 +171,14 @@ const Login: React.FC = () => {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
-           <div className="mt-2 mx-auto text-center">
-            <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ""}>
+          <div className="mt-2 mx-auto text-center">
+            <GoogleOAuthProvider
+              clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ""}
+            >
               <GoogleLogin
                 onSuccess={handleSuccessLoginGoogle}
                 onError={() => {
-                  console.log('Login Failed');
+                  console.log("Login Failed");
                 }}
               />
             </GoogleOAuthProvider>
