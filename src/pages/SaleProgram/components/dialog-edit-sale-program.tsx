@@ -144,7 +144,7 @@ export default function DialogEditSaleProgram({
     fetchSaleProgram();
     fetchCategories();
     fetchBrands();
-  }, [id]);
+  }, [id, openDialogEditSaleProgram]);
 
   const options = typeApply === "brand" ? brands : categories;
 
