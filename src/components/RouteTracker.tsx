@@ -34,9 +34,11 @@ const RouteTracker = ({ setUserPermissions }: Props) => {
 
             const permissions : string[] = response?.result || [];
             setUserPermissions(permissions);
+            localStorage.setItem("permissions", JSON.stringify(permissions));
           } catch (error) {
             console.error("Lỗi lấy quyền người dùng:", error);
             setUserPermissions([]);
+            localStorage.setItem("permissions", JSON.stringify([]));
           }
         };
 
@@ -46,6 +48,7 @@ const RouteTracker = ({ setUserPermissions }: Props) => {
       }
     } else {
       setUserPermissions([]);
+      localStorage.setItem("permissions", JSON.stringify([]));
     }
   }, [location.pathname, dispatch]);
 

@@ -233,6 +233,8 @@ export default function Sidenav() {
     const response: { result: string[] } = await clientAPI
       .service("Roles")
       .get(`permission-user/${id}`);
+      
+      console.log(response);
     if (response.result.includes(manageKey)) {
       navigate(route);
     }

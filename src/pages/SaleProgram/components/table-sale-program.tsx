@@ -233,7 +233,7 @@ export default function TableSaleProgram() {
     id: string,
     isActive: boolean
   ) => {
-    const confirmMessage = isActive
+    const confirmMessage = !isActive
       ? "Are you sure you want to unblock this sale program?"
       : "Are you sure you want to block this sale program?";
 
@@ -247,7 +247,7 @@ export default function TableSaleProgram() {
       setRefresh((prev) => !prev);
 
       toast.success(
-        isActive
+        !isActive
           ? "Sale program unblocked successfully."
           : "Sale program blocked successfully."
       );
@@ -382,7 +382,7 @@ export default function TableSaleProgram() {
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      {row.isActive ? (
+                      {!row.isActive ? (
                         <Tooltip title="Unblock Sale Program" placement="top">
                           <IconButton
                             color="success"

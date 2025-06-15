@@ -70,7 +70,7 @@ export default function TableUser() {
       try {
         const response: { result: User[] } = await clientAPI
           .service("users")
-          .find(`pageCurrent=${1}&pageSize=${10}`);
+          .find();
         setData(response.result);
       } catch (error) {
         console.error("Error fetching users:", error);

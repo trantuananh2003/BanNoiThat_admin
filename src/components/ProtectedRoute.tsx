@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ element, requiredPermission, userPermissions }: ProtectedRouteProps) => {
   const location = useLocation();
-
+  
   if (!userPermissions.includes(requiredPermission)) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
